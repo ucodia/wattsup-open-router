@@ -1,12 +1,30 @@
 const https = require("https");
 const cheerio = require("cheerio");
+const express = require("express");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 300 });
 
 function downloadHtml(url) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const cacheKey = url;
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+      return resolve(cachedData);
+    }
+
     const request = https.get(url, (response) => {
       let data = "";
       response.on("data", (chunk) => (data += chunk));
-      response.on("end", () => resolve(data));
+      response.on("end", () => {
+        cache.set(cacheKey, data);
+        resolve(data);
+      });
+    });
+
+    request.on("error", (error) => {
+      reject(error);
     });
   });
 }
@@ -39,8 +57,6 @@ function extractDataKey(content, dataKey) {
   return JSON.parse(dataString);
 }
 
-const keysOfInterest = ["rankingData", "rankMap"];
-
 function extractData(html) {
   const data = {};
   const $ = cheerio.load(html);
@@ -63,36 +79,51 @@ function extractData(html) {
   return data;
 }
 
-async function main() {
+async function getRankingsData() {
   let modelUsage = {};
   let appUsage = {};
 
-  try {
-    await Promise.all(
-      ["day", "week", "month"].map(async (period) => {
-        const html = await downloadHtml(
-          `https://openrouter.ai/rankings?view=${period}`
-        );
-        const data = extractData(html);
-        modelUsage[period] = data.modelUsage;
-        appUsage = data.appUsage;
-      })
-    );
+  await Promise.all(
+    ["day", "week", "month"].map(async (period) => {
+      const html = await downloadHtml(
+        `https://openrouter.ai/rankings?view=${period}`
+      );
+      const data = extractData(html);
+      modelUsage[period] = data.modelUsage;
+      appUsage = data.appUsage;
+    })
+  );
 
-    console.log(
-      JSON.stringify(
-        {
-          modelUsage,
-          appUsage,
-        },
-        null,
-        2
-      )
-    );
-  } catch (error) {
-    console.error("Error:", error.message);
-    process.exit(1);
-  }
+  return {
+    modelUsage,
+    appUsage,
+  };
 }
 
-main();
+const app = express();
+const port = process.env.PORT || 8888;
+
+app.use(express.json());
+
+app.get("/rankings", async (req, res) => {
+  try {
+    const rankingsData = await getRankingsData();
+    res.json(rankingsData);
+  } catch (error) {
+    console.error("Error fetching rankings:", error.message);
+    res.status(500).json({
+      error: "Failed to fetch rankings data",
+      message: error.message,
+    });
+  }
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
+
+module.exports = app;
