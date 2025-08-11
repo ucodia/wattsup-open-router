@@ -62,6 +62,7 @@ function TokenTable({ data }) {
 }
 
 function UsageSection({ title, items }) {
+  const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens)
   const topItems = getTopItems(items)
   return (
     <section className="mb-12">
@@ -83,7 +84,7 @@ function UsageSection({ title, items }) {
             <Tooltip formatter={(value) => formatNumber(value)} />
           </PieChart>
         </ResponsiveContainer>
-        <TokenTable data={topItems} />
+        <TokenTable data={sortedItems} />
       </div>
     </section>
   )
