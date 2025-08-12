@@ -132,8 +132,14 @@ export default function Home() {
     tokens: Number(a.total_tokens)
   }))
 
+  const totalModelTokens = models.reduce((sum, m) => sum + m.tokens, 0)
+
   return (
     <main className="space-y-12">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold">{formatNumber(totalModelTokens)} tokens</h1>
+        <p className="text-gray-600">Total Model Token Usage {PERIOD_LABELS[period]}</p>
+      </div>
       <PeriodSelector period={period} setPeriod={setPeriod} />
       <UsageSection title="Model Token Usage" items={models} />
       <UsageSection title="App Token Usage" items={apps} />
