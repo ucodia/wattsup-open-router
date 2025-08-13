@@ -1,6 +1,8 @@
 import { load } from "cheerio";
 import { NextResponse } from "next/server";
 
+export const revalidate = 300;
+
 function extractDataKey(content, dataKey) {
   const dataKeyIndex = content.indexOf(dataKey);
   const isArray =
