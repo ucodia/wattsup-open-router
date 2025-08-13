@@ -3,7 +3,6 @@
 import "./globals.css";
 import NavBar from "../components/NavBar";
 import Script from "next/script";
-import { PeriodProvider } from "../components/PeriodContext";
 
 export default function RootLayout({ children }) {
   return (
@@ -16,10 +15,8 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="min-h-screen bg-gray-50 font-sans">
-        <PeriodProvider>
-          <NavBar />
-          <div className="mx-auto max-w-5xl p-4">{children}</div>
-        </PeriodProvider>
+        <NavBar />
+        <div className="mx-auto max-w-5xl p-4">{children}</div>
       </body>
     </html>
   );

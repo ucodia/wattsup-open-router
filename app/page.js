@@ -16,7 +16,8 @@ import {
   CardTitle,
   CardContent,
 } from "../components/ui/card";
-import { usePeriod } from "../components/PeriodContext";
+import { Select, SelectOption } from "../components/ui/select";
+import { Label } from "../components/ui/label";
 
 const COLORS = [
   "#0088FE",
@@ -132,7 +133,7 @@ function UsageSection({ title, items }) {
 
 export default function Home() {
   const [data, setData] = useState(null);
-  const { period } = usePeriod();
+  const [period, setPeriod] = useState("day");
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -172,6 +173,22 @@ export default function Home() {
 
   return (
     <>
+      <div className="mb-6 flex items-center gap-3">
+        <Label htmlFor="period-select" className="text-sm font-medium">
+          Period:
+        </Label>
+        <Select
+          id="period-select"
+          value={period}
+          onChange={(e) => setPeriod(e.target.value)}
+          className="!w-auto min-w-[140px]"
+        >
+          <SelectOption value="day">Today</SelectOption>
+          <SelectOption value="week">This week</SelectOption>
+          <SelectOption value="month">This month</SelectOption>
+        </Select>
+      </div>
+
       <main className="space-y-8">
         <Card>
           <CardHeader>
