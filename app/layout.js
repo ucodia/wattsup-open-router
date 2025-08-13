@@ -1,11 +1,11 @@
-import './globals.css'
-import NavBar from '../components/NavBar'
-import Script from 'next/script'
+import "./globals.css";
+import NavBar from "../components/NavBar";
+import Script from "next/script";
 
 export const metadata = {
-  title: 'Wattsup Rankings',
-  description: 'Token usage statistics',
-}
+  title: "Wattsup for OpenRouter",
+  description: "OpenRouter token usage statistics",
+};
 
 export default function RootLayout({ children }) {
   return (
@@ -22,5 +22,5 @@ export default function RootLayout({ children }) {
         <div className="mx-auto max-w-5xl p-4">{children}</div>
       </body>
     </html>
-  )
+  );
 }
