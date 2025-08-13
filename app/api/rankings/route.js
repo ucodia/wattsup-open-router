@@ -1,26 +1,5 @@
-import https from "https";
 import { load } from "cheerio";
-import NodeCache from "node-cache";
 import { NextResponse } from "next/server";
-
-const cache = new NodeCache({ stdTTL: 300 });
-
-function downloadHtml(url) {
-  return new Promise((resolve, reject) => {
-    const cached = cache.get(url);
-    if (cached) return resolve(cached);
-    https
-      .get(url, (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          cache.set(url, data);
-          resolve(data);
-        });
-      })
-      .on("error", reject);
-  });
-}
 
 function extractDataKey(content, dataKey) {
   const dataKeyIndex = content.indexOf(dataKey);
@@ -67,18 +46,26 @@ function extractData(html) {
 }
 
 async function fetchRankings() {
-  let modelUsage = {};
+  const modelUsage = {};
   let appUsage = {};
-  await Promise.all(
-    ["day", "week", "month"].map(async (period) => {
-      const html = await downloadHtml(
-        `https://openrouter.ai/rankings?view=${period}`
-      );
-      const data = extractData(html);
-      modelUsage[period] = data.modelUsage;
-      appUsage = data.appUsage;
-    })
-  );
+
+  try {
+    await Promise.all(
+      ["day", "week", "month"].map(async (period) => {
+        const response = await fetch(
+          `https://openrouter.ai/rankings?view=${period}`,
+          { next: { revalidate: 300 } }
+        );
+        const html = await response.text();
+        const data = extractData(html);
+        modelUsage[period] = data.modelUsage;
+        appUsage = data.appUsage;
+      })
+    );
+  } catch (error) {
+    throw new Error(`Failed to fetch rankings data: ${error.message}`);
+  }
+
   return { modelUsage, appUsage };
 }
 
