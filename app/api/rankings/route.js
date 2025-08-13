@@ -55,9 +55,7 @@ async function fetchRankings() {
   try {
     const modelsResponse = await fetch(
       "https://openrouter.ai/api/frontend/models",
-      {
-        next: { revalidate: 3600 },
-      }
+      { cache: "no-store" } // avoid 2MB cache limit error
     );
     const modelsData = await modelsResponse.json();
     models = modelsData.data;
