@@ -2,7 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { Button } from "../components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "../components/ui/table";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../components/ui/card";
+import { usePeriod } from "../components/PeriodContext";
 
 const COLORS = [
   "#0088FE",
@@ -28,9 +42,9 @@ const COLORS = [
 ];
 
 const PERIOD_LABELS = {
-  day: "Today",
-  week: "This Week",
-  month: "This Month",
+  day: "today",
+  week: "this week",
+  month: "this month",
 };
 
 function formatNumber(num) {
@@ -53,31 +67,29 @@ function getTopItems(list, limit = 10) {
   return top;
 }
 
-function TokenTable({ data }) {
+function UsageTable({ data }) {
   return (
     <div className="mt-6 max-h-96 overflow-y-auto">
-      <table className="min-w-full divide-y divide-gray-200 text-sm">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-2 text-left font-medium text-gray-700">#</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-700">
-              Name
-            </th>
-            <th className="px-4 py-2 text-left font-medium text-gray-700">
-              Tokens
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">#</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead className="text-right">Tokens</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {data.map((item, index) => (
-            <tr key={`${item.name}-${index}`}>
-              <td className="px-4 py-2">{index + 1}</td>
-              <td className="px-4 py-2">{item.name}</td>
-              <td className="px-4 py-2">{formatNumber(item.tokens)}</td>
-            </tr>
+            <TableRow key={`${item.name}-${index}`}>
+              <TableCell className="font-medium">{index + 1}</TableCell>
+              <TableCell>{item.name}</TableCell>
+              <TableCell className="text-right">
+                {formatNumber(item.tokens)}
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -86,58 +98,41 @@ function UsageSection({ title, items }) {
   const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
   const topItems = getTopItems(items);
   return (
-    <section className="mb-12">
-      <h2 className="mb-4 text-xl font-semibold">{title}</h2>
-      <div className="grid gap-8 md:grid-cols-2">
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={topItems}
-              dataKey="tokens"
-              nameKey="name"
-              label={(entry) => formatNumber(entry.value)}
-              outerRadius={120}
-            >
-              {topItems.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value) => formatNumber(value)} />
-          </PieChart>
-        </ResponsiveContainer>
-        <TokenTable data={sortedItems} />
-      </div>
-    </section>
-  );
-}
-
-function PeriodSelector({ period, setPeriod }) {
-  const options = ["day", "week", "month"];
-  return (
-    <div className="mb-6 flex items-center gap-2">
-      {options.map((opt) => (
-        <Button
-          key={opt}
-          onClick={() => setPeriod(opt)}
-          className={
-            period === opt
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }
-        >
-          {PERIOD_LABELS[opt]}
-        </Button>
-      ))}
-    </div>
+    <Card className="mb-12">
+      <CardHeader>
+        <CardTitle className="text-xl">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-8 md:grid-cols-2">
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={topItems}
+                dataKey="tokens"
+                nameKey="name"
+                label={(entry) => formatNumber(entry.value)}
+                outerRadius={120}
+              >
+                {topItems.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => formatNumber(value)} />
+            </PieChart>
+          </ResponsiveContainer>
+          <UsageTable data={sortedItems} />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
 export default function Home() {
   const [data, setData] = useState(null);
-  const [period, setPeriod] = useState("day");
+  const { period } = usePeriod();
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -163,18 +158,21 @@ export default function Home() {
   const totalModelTokens = models.reduce((sum, m) => sum + m.tokens, 0);
 
   return (
-    <main className="space-y-12">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">
-          {formatNumber(totalModelTokens)} tokens
-        </h1>
-        <p className="text-gray-600">
-          Total model token usage {PERIOD_LABELS[period]}
-        </p>
-      </div>
-      <PeriodSelector period={period} setPeriod={setPeriod} />
-      <UsageSection title="Model token usage" items={models} />
-      <UsageSection title="App token usage" items={apps} />
+    <main className="space-y-8">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold">
+              {formatNumber(totalModelTokens)} tokens
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Total model token usage {PERIOD_LABELS[period]}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      <UsageSection title="Usage by model" items={models} />
+      <UsageSection title="Usage by app" items={apps} />
     </main>
   );
 }
