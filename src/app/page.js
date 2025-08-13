@@ -9,15 +9,10 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "../components/ui/table";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "../components/ui/card";
-import { Select, SelectOption } from "../components/ui/select";
-import { Label } from "../components/ui/label";
+} from "@/components/ui/table";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Select, SelectOption } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 const COLORS = [
   "#0088FE",
