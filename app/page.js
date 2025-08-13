@@ -171,34 +171,53 @@ export default function Home() {
   const totalTokens = models.reduce((sum, m) => sum + m.tokens, 0);
 
   return (
-    <main className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">
-            Global usage {PERIOD_LABELS[period]}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{formatNumber(promptTokens)}</p>
-              <p className="text-muted-foreground mt-2">Prompt tokens</p>
+    <>
+      <main className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">
+              Global usage {PERIOD_LABELS[period]}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  {formatNumber(promptTokens)}
+                </p>
+                <p className="text-muted-foreground mt-2">Prompt tokens</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  {formatNumber(completionTokens)}
+                </p>
+                <p className="text-muted-foreground mt-2">Completion tokens</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  {formatNumber(totalTokens)}
+                </p>
+                <p className="text-muted-foreground mt-2">Total tokens</p>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">
-                {formatNumber(completionTokens)}
-              </p>
-              <p className="text-muted-foreground mt-2">Completion tokens</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{formatNumber(totalTokens)}</p>
-              <p className="text-muted-foreground mt-2">Total tokens</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <UsageSection title="Usage by model" items={models} />
-      <UsageSection title="Usage by app" items={apps} />
-    </main>
+          </CardContent>
+        </Card>
+        <UsageSection title="Usage by model" items={models} />
+        <UsageSection title="Usage by app" items={apps} />
+      </main>
+      <footer className="mt-4 py-4 text-center text-muted-foreground">
+        <p>
+          <a
+            href="https://wattsup.tech"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline"
+          >
+            Wattsup
+          </a>
+          : shining a light on AI energy usage.
+        </p>
+      </footer>
+    </>
   );
 }
