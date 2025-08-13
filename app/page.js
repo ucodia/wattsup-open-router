@@ -148,6 +148,8 @@ export default function Home() {
   const models = data.modelUsage[period].map((m) => ({
     name: m.model_permaslug,
     tokens: m.total_completion_tokens + m.total_prompt_tokens,
+    promptTokens: m.total_prompt_tokens,
+    completionTokens: m.total_completion_tokens,
   }));
 
   const apps = data.appUsage[period].map((a) => ({
@@ -155,19 +157,37 @@ export default function Home() {
     tokens: Number(a.total_tokens),
   }));
 
-  const totalModelTokens = models.reduce((sum, m) => sum + m.tokens, 0);
+  const promptTokens = models.reduce((sum, m) => sum + m.promptTokens, 0);
+  const completionTokens = models.reduce(
+    (sum, m) => sum + m.completionTokens,
+    0
+  );
+  const totalTokens = models.reduce((sum, m) => sum + m.tokens, 0);
 
   return (
     <main className="space-y-8">
       <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">
+            Global usage {PERIOD_LABELS[period]}
+          </CardTitle>
+        </CardHeader>
         <CardContent className="pt-6">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold">
-              {formatNumber(totalModelTokens)} tokens
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Total model token usage {PERIOD_LABELS[period]}
-            </p>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div className="text-center">
+              <p className="text-2xl font-bold">{formatNumber(promptTokens)}</p>
+              <p className="text-muted-foreground mt-2">Prompt tokens</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">
+                {formatNumber(completionTokens)}
+              </p>
+              <p className="text-muted-foreground mt-2">Completion tokens</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">{formatNumber(totalTokens)}</p>
+              <p className="text-muted-foreground mt-2">Total tokens</p>
+            </div>
           </div>
         </CardContent>
       </Card>
