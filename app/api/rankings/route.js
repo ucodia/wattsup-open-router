@@ -50,16 +50,26 @@ function extractData(html) {
 async function fetchRankings() {
   const modelUsage = {};
   let appUsage = {};
+  let models = {};
 
   try {
+    const modelsResponse = await fetch(
+      "https://openrouter.ai/api/frontend/models",
+      {
+        next: { revalidate: 3600 },
+      }
+    );
+    const modelsData = await modelsResponse.json();
+    models = modelsData.data;
+
     await Promise.all(
       ["day", "week", "month"].map(async (period) => {
-        const response = await fetch(
+        const rankingsResponse = await fetch(
           `https://openrouter.ai/rankings?view=${period}`,
           { next: { revalidate: 300 } }
         );
-        const html = await response.text();
-        const data = extractData(html);
+        const rankingsHtml = await rankingsResponse.text();
+        const data = extractData(rankingsHtml);
         modelUsage[period] = data.modelUsage;
         appUsage = data.appUsage;
       })
@@ -68,7 +78,7 @@ async function fetchRankings() {
     throw new Error(`Failed to fetch rankings data: ${error.message}`);
   }
 
-  return { modelUsage, appUsage };
+  return { modelUsage, appUsage, models };
 }
 
 export async function GET() {

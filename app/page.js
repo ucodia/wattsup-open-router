@@ -145,12 +145,18 @@ export default function Home() {
   if (error) return <p className="text-red-600">Error: {error}</p>;
   if (!data) return <p>Loading...</p>;
 
-  const models = data.modelUsage[period].map((m) => ({
-    name: m.model_permaslug,
-    tokens: m.total_completion_tokens + m.total_prompt_tokens,
-    promptTokens: m.total_prompt_tokens,
-    completionTokens: m.total_completion_tokens,
-  }));
+  const models = data.modelUsage[period].map((m) => {
+    const model = data.models.find(
+      (model) => model.permaslug === m.model_permaslug
+    );
+    return {
+      id: model.permaslug,
+      name: model.short_name,
+      tokens: m.total_completion_tokens + m.total_prompt_tokens,
+      promptTokens: m.total_prompt_tokens,
+      completionTokens: m.total_completion_tokens,
+    };
+  });
 
   const apps = data.appUsage[period].map((a) => ({
     name: a.app?.title || String(a.app_id),
