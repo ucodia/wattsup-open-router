@@ -1,6 +1,6 @@
 {
-  "name": "wattsup-llm-rankings",
-  "version": "1.0.0",
+  "name": "wattsup-open-router",
+  "version": "0.1.0",
   "description": "",
   "private": true,
   "scripts": {

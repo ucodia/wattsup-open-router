@@ -1,4 +1,4 @@
-# WattsUp LLM Rankings
+# Wattsup for OpenRouter
 
 A Next.js application that fetches rankings data from OpenRouter and
 visualises token usage for both AI models and apps.
@@ -23,6 +23,3 @@ It returns model and app usage for day, week and month periods.
   "appUsage": {"day": [...], "week": [...], "month": [...]} 
 }
 ```
-
-If OpenRouter cannot be reached the API falls back to bundled sample
-fixtures (`sample-data.json`).
