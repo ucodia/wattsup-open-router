@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export default function RootLayout({ children }) {
@@ -38,6 +39,7 @@ export default function RootLayout({ children }) {
             : shining a light on AI energy usage.
           </p>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
