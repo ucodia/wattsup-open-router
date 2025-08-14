@@ -26,6 +26,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import llmImpact from "@/lib/llmImpact";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -187,7 +188,7 @@ function UsageSection({ title, items, stat, isLoading }) {
             config={chartConfig}
             className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square min-h-[300px]"
           >
-            <PieChart>
+            <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <Pie
                 data={topItems}
                 dataKey={stat}
@@ -236,7 +237,13 @@ export default function Home() {
       });
   }, []);
 
-  if (error) return <p className="text-red-600">Error: {error}</p>;
+  if (error)
+    return (
+      <Alert>
+        <AlertTitle>Failed to fetch data</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
 
   const models =
     data && !isLoading
