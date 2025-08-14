@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import llmImpact from "@/lib/llmImpact";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -41,12 +42,31 @@ const PERIOD_LABELS = {
   month: "this month",
 };
 
-function formatNumber(num) {
+const STAT_LABELS = {
+  energy: "Energy usage",
+  emissions: "CO2 emissions",
+  tokens: "Tokens",
+};
+
+function formatNumber(num, stat) {
+  if (stat === "energy") {
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + " PWh";
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + " TWh";
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + " GWh";
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + " MWh";
+    return num.toFixed(2) + " kWh";
+  } else if (stat === "emissions") {
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + " PgCO2eq";
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + " TgCO2eq";
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + " GgCO2eq";
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + " MgCO2eq";
+    return num.toFixed(2) + " kgCO2eq";
+  }
   if (num >= 1e12) return (num / 1e12).toFixed(2) + "T";
   if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
   if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
   if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
-  return num.toLocaleString();
+  return num.toFixed(2);
 }
 
 function getTopItems(list, limit = 10) {
@@ -88,7 +108,7 @@ function ExternalLink({ href, children, className = "" }) {
   );
 }
 
-function UsageTable({ data }) {
+function UsageTable({ data, stat }) {
   return (
     <div className="mt-6 max-h-96 overflow-y-auto">
       <Table>
@@ -118,7 +138,7 @@ function UsageTable({ data }) {
                 </div>
               </TableCell>
               <TableCell className="text-right">
-                {formatNumber(item.tokens)}
+                {formatNumber(item.tokens, stat)}
               </TableCell>
             </TableRow>
           ))}
@@ -128,7 +148,7 @@ function UsageTable({ data }) {
   );
 }
 
-function UsageSection({ title, items }) {
+function UsageSection({ title, items, stat }) {
   const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
   const topItems = getTopItems(items);
   return (
@@ -138,16 +158,15 @@ function UsageSection({ title, items }) {
       </CardHeader>
       <CardContent>
         <div className="grid gap-8 md:grid-cols-2">
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" minHeight={300}>
             <PieChart>
               <Pie
                 data={topItems}
-                dataKey="tokens"
+                dataKey={stat}
                 nameKey="name"
-                label={(entry) => formatNumber(entry.value)}
-                outerRadius={120}
+                label={(entry) => formatNumber(entry.value, stat)}
               >
-                {topItems.map((entry, index) => (
+                {topItems.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
@@ -157,7 +176,7 @@ function UsageSection({ title, items }) {
               <Tooltip formatter={(value) => formatNumber(value)} />
             </PieChart>
           </ResponsiveContainer>
-          <UsageTable data={sortedItems} />
+          <UsageTable data={sortedItems} stat={stat} />
         </div>
       </CardContent>
     </Card>
@@ -166,8 +185,11 @@ function UsageSection({ title, items }) {
 
 export default function Home() {
   const [data, setData] = useState(null);
-  const [period, setPeriod] = useState("day");
+  const [period, setPeriod] = useState("month");
+  const [stat, setStat] = useState("tokens");
   const [error, setError] = useState(null);
+  const periodLabel = PERIOD_LABELS[period];
+  const statLabel = STAT_LABELS[stat];
 
   useEffect(() => {
     fetch("/api/rankings")
@@ -183,12 +205,16 @@ export default function Home() {
     const model = data.models.find(
       (model) => model.permaslug === m.model_permaslug
     );
+    const impact = llmImpact(20, 120, m.total_completion_tokens, 0, "WOR");
+
     return {
       id: model.permaslug,
       name: model.short_name,
       tokens: m.total_completion_tokens + m.total_prompt_tokens,
       promptTokens: m.total_prompt_tokens,
       completionTokens: m.total_completion_tokens,
+      energy: Number((impact.energy.min + impact.energy.max) / 2),
+      emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
       url: `https://openrouter.ai/${model.slug}`,
       description: (
         <span>
@@ -201,19 +227,51 @@ export default function Home() {
     };
   });
 
-  const apps = data.appUsage[period].map((a) => ({
-    name: a.app?.title || String(a.app_id),
-    tokens: Number(a.total_tokens),
-    url: a.app?.origin_url,
-    description: a.app?.description,
-  }));
+  const apps = data.appUsage[period].map((a) => {
+    const impact = llmImpact(20, 120, Number(a.total_tokens), 0, "WOR");
 
-  const promptTokens = models.reduce((sum, m) => sum + m.promptTokens, 0);
-  const completionTokens = models.reduce(
-    (sum, m) => sum + m.completionTokens,
-    0
-  );
-  const totalTokens = models.reduce((sum, m) => sum + m.tokens, 0);
+    return {
+      name: a.app?.title,
+      tokens: Number(a.total_tokens),
+      energy: Number((impact.energy.min + impact.energy.max) / 2),
+      emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
+      url: a.app?.origin_url,
+      description: a.app?.description,
+    };
+  });
+
+  const stats = [
+    {
+      name: "Prompt tokens",
+      stat: "tokens",
+      emoji: "📝",
+      value: models.reduce((sum, m) => sum + m.promptTokens, 0),
+    },
+    {
+      name: "Completion tokens",
+      stat: "tokens",
+      emoji: "✅",
+      value: models.reduce((sum, m) => sum + m.completionTokens, 0),
+    },
+    {
+      name: "Total tokens",
+      stat: "tokens",
+      emoji: "🔤",
+      value: models.reduce((sum, m) => sum + m.tokens, 0),
+    },
+    {
+      name: "Projected energy",
+      stat: "energy",
+      emoji: "⚡",
+      value: models.reduce((sum, m) => sum + m.energy, 0),
+    },
+    {
+      name: "Projected emissions",
+      stat: "emissions",
+      emoji: "🌱",
+      value: models.reduce((sum, m) => sum + m.emissions, 0),
+    },
+  ];
 
   return (
     <>
@@ -222,7 +280,7 @@ export default function Home() {
           Period:
         </Label>
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger>
             <SelectValue placeholder="Select period" />
           </SelectTrigger>
           <SelectContent>
@@ -231,40 +289,50 @@ export default function Home() {
             <SelectItem value="month">This month</SelectItem>
           </SelectContent>
         </Select>
+        {/* <Label htmlFor="stat-select" className="text-sm font-medium">
+          Stat:
+        </Label>
+        <Select value={stat} onValueChange={setStat}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select stat" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(STAT_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select> */}
       </div>
 
       <main className="space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">
-              Global usage {PERIOD_LABELS[period]}
-            </CardTitle>
+            <CardTitle className="text-xl">Totals for {periodLabel}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <div className="text-center">
-                <p className="text-2xl font-bold">
-                  {formatNumber(promptTokens)}
-                </p>
-                <p className="text-muted-foreground mt-2">Prompt tokens</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">
-                  {formatNumber(completionTokens)}
-                </p>
-                <p className="text-muted-foreground mt-2">Completion tokens</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">
-                  {formatNumber(totalTokens)}
-                </p>
-                <p className="text-muted-foreground mt-2">Total tokens</p>
-              </div>
+            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+              {stats.map((data) => (
+                <div key={data.name} className="flex items-center space-x-3">
+                  <div className="text-xl sm:text-2xl">{data.emoji}</div>
+                  <div>
+                    <p className="text-l sm:text-xl font-bold">
+                      {formatNumber(data.value, data.stat)}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{data.name}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
-        <UsageSection title="Usage by model" items={models} />
-        <UsageSection title="Usage by app" items={apps} />
+        <UsageSection
+          title={`${statLabel} by model`}
+          items={models}
+          stat={stat}
+        />
+        <UsageSection title={`${statLabel} by app`} items={apps} stat={stat} />
       </main>
     </>
   );
