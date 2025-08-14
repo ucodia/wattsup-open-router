@@ -15,26 +15,18 @@ import { Select, SelectOption } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#FF8042",
-  "#8884D8",
-  "#8dd1e1",
-  "#a4de6c",
-  "#d0ed57",
-  "#ffc658",
-  "#a28ef4",
-  "#ff7f50",
-  "#87ceeb",
-  "#da70d6",
-  "#32cd32",
-  "#6495ed",
-  "#ff69b4",
-  "#cd5c5c",
-  "#ffa07a",
-  "#20b2aa",
-  "#778899",
+  "#60a5fa", // blue-400
+  "#34d399", // emerald-400
+  "#fbbf24", // amber-400
+  "#f87171", // red-400
+  "#a78bfa", // violet-400
+  "#22d3ee", // cyan-400
+  "#a3e635", // lime-400
+  "#fb923c", // orange-400
+  "#f472b6", // pink-400
+  "#818cf8", // indigo-400
+  "#2dd4bf", // teal-400
+  "#c084fc", // purple-400
 ];
 
 const PERIOD_LABELS = {
