@@ -11,7 +11,13 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Select, SelectOption } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 const COLORS = [
@@ -215,15 +221,15 @@ export default function Home() {
         <Label htmlFor="period-select" className="text-sm font-medium">
           Period:
         </Label>
-        <Select
-          id="period-select"
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className="!w-auto min-w-[140px]"
-        >
-          <SelectOption value="day">Today</SelectOption>
-          <SelectOption value="week">This week</SelectOption>
-          <SelectOption value="month">This month</SelectOption>
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Select period" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="day">Today</SelectItem>
+            <SelectItem value="week">This week</SelectItem>
+            <SelectItem value="month">This month</SelectItem>
+          </SelectContent>
         </Select>
       </div>
 
@@ -234,7 +240,7 @@ export default function Home() {
               Global usage {PERIOD_LABELS[period]}
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               <div className="text-center">
                 <p className="text-2xl font-bold">

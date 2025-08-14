@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="min-h-screen font-sans">
-        <nav className="border-b border-gray-200 bg-white">
+        <nav className="border-b bg-white">
           <div className="mx-auto flex max-w-5xl items-center p-4">
             <Link
               href="/"
