@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ChartContainer,
   ChartTooltip,
@@ -153,7 +154,20 @@ function UsageTable({ data, stat }) {
   );
 }
 
-function UsageSection({ title, items, stat }) {
+function UsageSection({ title, items, stat, isLoading }) {
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-64 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
   const topItems = getTopItems(items);
   const chartConfig = {
@@ -201,6 +215,7 @@ function UsageSection({ title, items, stat }) {
 
 export default function Home() {
   const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState("month");
   const [stat, setStat] = useState("tokens");
   const [error, setError] = useState(null);
@@ -208,85 +223,105 @@ export default function Home() {
   const statLabel = STAT_LABELS[stat];
 
   useEffect(() => {
+    setIsLoading(true);
     fetch("/api/rankings")
       .then((res) => res.json())
-      .then(setData)
-      .catch((err) => setError(err.message));
+      .then((data) => {
+        setData(data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setIsLoading(false);
+      });
   }, []);
 
   if (error) return <p className="text-red-600">Error: {error}</p>;
-  if (!data) return <p>Loading...</p>;
 
-  const models = data.modelUsage[period].map((m) => {
-    const model = data.models.find(
-      (model) => model.permaslug === m.model_permaslug
-    );
-    const impact = llmImpact(20, 120, m.total_completion_tokens, 0, "WOR");
+  const models =
+    data && !isLoading
+      ? data.modelUsage[period].map((m) => {
+          const model = data.models.find(
+            (model) => model.permaslug === m.model_permaslug
+          );
+          const impact = llmImpact(
+            20,
+            120,
+            m.total_completion_tokens,
+            0,
+            "WOR"
+          );
 
-    return {
-      name: model.short_name,
-      tokens: m.total_completion_tokens + m.total_prompt_tokens,
-      promptTokens: m.total_prompt_tokens,
-      completionTokens: m.total_completion_tokens,
-      energy: Number((impact.energy.min + impact.energy.max) / 2),
-      emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
-      url: `https://openrouter.ai/${model.slug}`,
-      description: (
-        <span>
-          by{" "}
-          <ExternalLink href={`https://openrouter.ai/${model.author}`}>
-            {model.author}
-          </ExternalLink>
-        </span>
-      ),
-    };
-  });
+          return {
+            name: model.short_name,
+            tokens: m.total_completion_tokens + m.total_prompt_tokens,
+            promptTokens: m.total_prompt_tokens,
+            completionTokens: m.total_completion_tokens,
+            energy: Number((impact.energy.min + impact.energy.max) / 2),
+            emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
+            url: `https://openrouter.ai/${model.slug}`,
+            description: (
+              <span>
+                by{" "}
+                <ExternalLink href={`https://openrouter.ai/${model.author}`}>
+                  {model.author}
+                </ExternalLink>
+              </span>
+            ),
+          };
+        })
+      : [];
 
-  const apps = data.appUsage[period].map((a) => {
-    const impact = llmImpact(20, 120, Number(a.total_tokens), 0, "WOR");
+  const apps =
+    data && !isLoading
+      ? data.appUsage[period].map((a) => {
+          const impact = llmImpact(20, 120, Number(a.total_tokens), 0, "WOR");
 
-    return {
-      name: a.app?.title,
-      tokens: Number(a.total_tokens),
-      energy: Number((impact.energy.min + impact.energy.max) / 2),
-      emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
-      url: a.app?.origin_url,
-      description: a.app?.description,
-    };
-  });
+          return {
+            name: a.app?.title,
+            tokens: Number(a.total_tokens),
+            energy: Number((impact.energy.min + impact.energy.max) / 2),
+            emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
+            url: a.app?.origin_url,
+            description: a.app?.description,
+          };
+        })
+      : [];
 
-  const stats = [
-    {
-      name: "Prompt tokens",
-      stat: "tokens",
-      emoji: "📝",
-      value: models.reduce((sum, m) => sum + m.promptTokens, 0),
-    },
-    {
-      name: "Completion tokens",
-      stat: "tokens",
-      emoji: "✅",
-      value: models.reduce((sum, m) => sum + m.completionTokens, 0),
-    },
-    {
-      name: "Total tokens",
-      stat: "tokens",
-      emoji: "🔤",
-      value: models.reduce((sum, m) => sum + m.tokens, 0),
-    },
-    {
-      name: "Projected energy",
-      stat: "energy",
-      emoji: "⚡",
-      value: models.reduce((sum, m) => sum + m.energy, 0),
-    },
-    {
-      name: "Projected emissions",
-      stat: "emissions",
-      emoji: "🌱",
-      value: models.reduce((sum, m) => sum + m.emissions, 0),
-    },
-  ];
+  const stats = !isLoading
+    ? [
+        {
+          name: "Prompt tokens",
+          stat: "tokens",
+          emoji: "📝",
+          value: models.reduce((sum, m) => sum + m.promptTokens, 0),
+        },
+        {
+          name: "Completion tokens",
+          stat: "tokens",
+          emoji: "✅",
+          value: models.reduce((sum, m) => sum + m.completionTokens, 0),
+        },
+        {
+          name: "Total tokens",
+          stat: "tokens",
+          emoji: "🔤",
+          value: models.reduce((sum, m) => sum + m.tokens, 0),
+        },
+        {
+          name: "Projected energy",
+          stat: "energy",
+          emoji: "⚡",
+          value: models.reduce((sum, m) => sum + m.energy, 0),
+        },
+        {
+          name: "Projected emissions",
+          stat: "emissions",
+          emoji: "🌱",
+          value: models.reduce((sum, m) => sum + m.emissions, 0),
+        },
+      ]
+    : [];
 
   return (
     <>
@@ -327,27 +362,39 @@ export default function Home() {
             <CardTitle className="text-xl">Totals for {periodLabel}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-              {stats.map((data) => (
-                <div key={data.name} className="flex items-center space-x-3">
-                  <div className="text-xl sm:text-2xl">{data.emoji}</div>
-                  <div>
-                    <p className="text-l sm:text-xl font-bold">
-                      {formatNumber(data.value, data.stat)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{data.name}</p>
+            {isLoading ? (
+              <Skeleton className="h-32 w-full" />
+            ) : (
+              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+                {stats.map((data) => (
+                  <div key={data.name} className="flex items-center space-x-3">
+                    <div className="text-xl sm:text-2xl">{data.emoji}</div>
+                    <div>
+                      <p className="text-l sm:text-xl font-bold">
+                        {formatNumber(data.value, data.stat)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {data.name}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
         <UsageSection
           title={`${statLabel} by model`}
           items={models}
           stat={stat}
+          isLoading={isLoading}
         />
-        <UsageSection title={`${statLabel} by app`} items={apps} stat={stat} />
+        <UsageSection
+          title={`${statLabel} by app`}
+          items={apps}
+          stat={stat}
+          isLoading={isLoading}
+        />
       </main>
     </>
   );
