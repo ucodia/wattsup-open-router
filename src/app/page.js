@@ -176,7 +176,7 @@ function UsageSection({ title, items, stat, isLoading }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">{title}</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-8 md:grid-cols-2">
@@ -218,7 +218,7 @@ function TotalSection({ title, items, isLoading }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">{title}</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -229,8 +229,10 @@ function TotalSection({ title, items, isLoading }) {
               <div key={item.name} className="flex items-center space-x-3">
                 <div className="text-xl sm:text-2xl">{item.emoji}</div>
                 <div>
-                  <p className="text-l sm:text-xl font-bold">{item.value}</p>
-                  <p className="text-sm text-muted-foreground">{item.name}</p>
+                  <p className="text-sm sm:text-base font-bold">{item.value}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    {item.name}
+                  </p>
                 </div>
               </div>
             ))}
@@ -247,7 +249,6 @@ export default function Home() {
   const [period, setPeriod] = useState("month");
   const [stat, setStat] = useState("tokens");
   const [error, setError] = useState(null);
-  const periodLabel = PERIOD_LABELS[period];
   const statLabel = STAT_LABELS[stat];
 
   useEffect(() => {
