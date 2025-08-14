@@ -63,6 +63,33 @@ function getTopItems(list, limit = 10) {
   return top;
 }
 
+function ExternalLink({ href, children, className = "" }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`hover:underline inline-flex items-center gap-1 ${className}`}
+    >
+      {children}
+      <svg
+        className="w-3 h-3"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+        />
+      </svg>
+    </a>
+  );
+}
+
 function UsageTable({ data }) {
   return (
     <div className="mt-6 max-h-96 overflow-y-auto">
@@ -81,28 +108,7 @@ function UsageTable({ data }) {
               <TableCell>
                 <div>
                   {item.url ? (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline inline-flex items-center gap-1"
-                    >
-                      {item.name}
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
-                      </svg>
-                    </a>
+                    <ExternalLink href={item.url}>{item.name}</ExternalLink>
                   ) : (
                     item.name
                   )}
@@ -185,6 +191,15 @@ export default function Home() {
       tokens: m.total_completion_tokens + m.total_prompt_tokens,
       promptTokens: m.total_prompt_tokens,
       completionTokens: m.total_completion_tokens,
+      url: `https://openrouter.ai/${model.slug}`,
+      description: (
+        <span>
+          by{" "}
+          <ExternalLink href={`https://openrouter.ai/${model.author}`}>
+            {model.author}
+          </ExternalLink>
+        </span>
+      ),
     };
   });
 
