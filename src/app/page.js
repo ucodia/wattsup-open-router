@@ -167,21 +167,16 @@ function UsageSection({ title, items, stat, isLoading }) {
 
   const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
   const topItems = getTopItems(items);
-  const chartConfig = {
-    tokens: {
-      label: "Token usage",
-    },
-  };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="pt-0">
+      <CardHeader className="gap-0 border-b [.border-b]:py-4">
         <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-8 md:grid-cols-2">
           <ChartContainer
-            config={chartConfig}
+            config={{}}
             className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square min-h-[300px]"
           >
             <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
@@ -216,8 +211,8 @@ function UsageSection({ title, items, stat, isLoading }) {
 
 function TotalSection({ title, items, isLoading }) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="pt-0">
+      <CardHeader className="gap-0 border-b [.border-b]:py-4">
         <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>
