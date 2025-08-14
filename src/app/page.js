@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/chart";
 import llmImpact from "@/lib/llmImpact";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import equivalences from "@/lib/data/equivalences.json";
+import equivalencesData from "@/lib/data/equivalences.json";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -55,6 +55,8 @@ const STAT_LABELS = {
   emissions: "CO2 emissions",
   tokens: "Tokens",
 };
+
+const DEFAULT_LATENCY = 1000;
 
 function formatNumber(num, stat, precision = 2, long = false) {
   if (stat === "energy") {
@@ -212,6 +214,33 @@ function UsageSection({ title, items, stat, isLoading }) {
   );
 }
 
+function TotalSection({ title, items, isLoading }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-xl">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Skeleton className="h-32 w-full" />
+        ) : (
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+            {items.map((item) => (
+              <div key={item.name} className="flex items-center space-x-3">
+                <div className="text-xl sm:text-2xl">{item.emoji}</div>
+                <div>
+                  <p className="text-l sm:text-xl font-bold">{item.value}</p>
+                  <p className="text-sm text-muted-foreground">{item.name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Home() {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -253,7 +282,7 @@ export default function Home() {
             20,
             120,
             m.total_completion_tokens,
-            0,
+            m.count * DEFAULT_LATENCY,
             "WOR"
           );
 
@@ -281,7 +310,7 @@ export default function Home() {
   const apps =
     data && !isLoading
       ? data.appUsage[period].map((a) => {
-          const impact = llmImpact(20, 120, Number(a.total_tokens), 0, "WOR");
+          const impact = llmImpact(20, 120, Number(a.total_tokens), 0, "WOR"); // we are missing information to estimate latency
 
           return {
             name: a.app?.title,
@@ -308,37 +337,50 @@ export default function Home() {
     ? [
         {
           name: "Projected energy",
-          stat: "energy",
           emoji: "⚡",
-          value: totalEnergy,
+          value: formatNumber(totalEnergy, "energy"),
         },
         {
           name: "Projected emissions",
-          stat: "emissions",
           emoji: "🌱",
-          value: totalEmissions,
+          value: formatNumber(totalEmissions, "emissions"),
         },
         {
           name: "Prompt tokens",
           emoji: "📝",
-          value: totalPromptTokens,
+          value: formatNumber(totalPromptTokens),
         },
         {
           name: "Completion tokens",
           emoji: "✅",
-          value: totalCompletionTokens,
+          value: formatNumber(totalCompletionTokens),
         },
         {
           name: "Total tokens",
           emoji: "🔤",
-          value: totalTokens,
+          value: formatNumber(totalTokens),
         },
         {
           name: "Requests count",
           emoji: "📊  ",
-          value: totalRequests,
+          value: formatNumber(totalRequests),
         },
       ]
+    : [];
+
+  const equivalences = !isLoading
+    ? equivalencesData
+        .filter((item) => item.enabled)
+        .map((item) => {
+          const value = item.gCO2eq
+            ? totalEmissions / item.gCO2eq
+            : totalEnergy / item.wh;
+          return {
+            name: item.label,
+            emoji: item.emoji,
+            value: formatNumber(value, null, value < 10 ? 2 : 0),
+          };
+        })
     : [];
 
   return (
@@ -375,67 +417,12 @@ export default function Home() {
       </div>
 
       <main className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Totals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-32 w-full" />
-            ) : (
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-                {totals.map((item) => (
-                  <div key={item.name} className="flex items-center space-x-3">
-                    <div className="text-xl sm:text-2xl">{item.emoji}</div>
-                    <div>
-                      <p className="text-l sm:text-xl font-bold">
-                        {formatNumber(item.value, item.stat)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.name}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Equivalences</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-32 w-full" />
-            ) : (
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-                {equivalences
-                  .filter((item) => item.enabled)
-                  .map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center space-x-3"
-                    >
-                      <div className="text-xl sm:text-2xl">{item.emoji}</div>
-                      <div>
-                        <p className="text-l sm:text-xl font-bold">
-                          {formatNumber(
-                            totalEmissions / 1000 / item.kgCO2eq,
-                            null,
-                            0
-                          )}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.label}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <TotalSection title="Totals" items={totals} isLoading={isLoading} />
+        <TotalSection
+          title="Equivalences"
+          items={equivalences}
+          isLoading={isLoading}
+        />
         <UsageSection
           title={`${statLabel} by model`}
           items={models}

@@ -1,44 +1,58 @@
 [
 	{
+		"label": "number of nuclear plants",
+		"unit": "day",
+		"emoji": "☢️️",
+		"wh": 1000000000,
+		"enabled": true
+	},
+	{
 		"label": "km driven in a car",
 		"unit": "km",
 		"emoji": "🚗",
-		"kgCO2eq": 0.249,
+		"gCO2eq": 249,
 		"enabled": true
 	},
 	{
 		"label": "smartphones charged",
 		"unit": "cycles",
 		"emoji": "📱",
-		"kgCO2eq": 0.0124,
+		"gCO2eq": 12.4,
 		"enabled": true
 	},
 	{
-		"label": "min of YouTube streamed",
-		"unit": "min",
+		"label": "h of YouTube streamed",
+		"unit": "h",
 		"emoji": "📺",
-		"kgCO2eq": 0.0006,
+		"gCO2eq": 0.01,
 		"enabled": true
 	},
 	{
 		"label": "Paris-NYC flights",
 		"unit": "flights",
 		"emoji": "✈️",
-		"kgCO2eq": 909.6,
+		"gCO2eq": 909600,
 		"enabled": false
 	},
 	{
 		"label": "h of LED bulb",
 		"unit": "h",
 		"emoji": "💡",
-		"kgCO2eq": 0.00436,
+		"gCO2eq": 4.36,
 		"enabled": false
 	},
 	{
 		"label": "km in a bullet train",
 		"unit": "km",
 		"emoji": "🚄",
-		"kgCO2eq": 0.0032,
+		"gCO2eq": 3.2,
+		"enabled": true
+	},
+	{
+		"label": "days running a microwave",
+		"unit": "day",
+		"emoji": "⏲️️",
+		"wh": 24000,
 		"enabled": true
 	}
 ]
