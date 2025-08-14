@@ -117,18 +117,11 @@ function ExternalLink({ href, children, className = "" }) {
 
 function UsageTable({ data, stat }) {
   return (
-    <div className="mt-6 max-h-96 overflow-y-auto">
+    <div className="max-h-96 overflow-y-auto">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">#</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead className="text-right">Tokens</TableHead>
-          </TableRow>
-        </TableHeader>
         <TableBody>
           {data.map((item, index) => (
-            <TableRow key={`${item.name}-${index}`}>
+            <TableRow key={`${item.name}-${index}`} className="border-0">
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>
                 <div>
@@ -138,7 +131,7 @@ function UsageTable({ data, stat }) {
                     item.name
                   )}
                   {item.description && (
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-gray-500">
                       {item.description}
                     </div>
                   )}
