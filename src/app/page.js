@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/chart";
 import llmImpact from "@/lib/llmImpact";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import equivalences from "@/lib/data/equivalences.json";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -55,25 +56,25 @@ const STAT_LABELS = {
   tokens: "Tokens",
 };
 
-function formatNumber(num, stat) {
+function formatNumber(num, stat, precision = 2, long = false) {
   if (stat === "energy") {
-    if (num >= 1e12) return (num / 1e12).toFixed(2) + " PWh";
-    if (num >= 1e9) return (num / 1e9).toFixed(2) + " TWh";
-    if (num >= 1e6) return (num / 1e6).toFixed(2) + " GWh";
-    if (num >= 1e3) return (num / 1e3).toFixed(2) + " MWh";
-    return num.toFixed(2) + " kWh";
+    if (num >= 1e12) return (num / 1e12).toFixed(precision) + " TWh";
+    if (num >= 1e9) return (num / 1e9).toFixed(precision) + " GWh";
+    if (num >= 1e6) return (num / 1e6).toFixed(precision) + " MWh";
+    if (num >= 1e3) return (num / 1e3).toFixed(precision) + " kWh";
+    return num.toFixed(precision) + " Wh";
   } else if (stat === "emissions") {
-    if (num >= 1e12) return (num / 1e12).toFixed(2) + " PgCO2eq";
-    if (num >= 1e9) return (num / 1e9).toFixed(2) + " TgCO2eq";
-    if (num >= 1e6) return (num / 1e6).toFixed(2) + " GgCO2eq";
-    if (num >= 1e3) return (num / 1e3).toFixed(2) + " MgCO2eq";
-    return num.toFixed(2) + " kgCO2eq";
+    if (num >= 1e12) return (num / 1e12).toFixed(precision) + " TgCO2eq";
+    if (num >= 1e9) return (num / 1e9).toFixed(precision) + " GgCO2eq";
+    if (num >= 1e6) return (num / 1e6).toFixed(precision) + " MgCO2eq";
+    if (num >= 1e3) return (num / 1e3).toFixed(precision) + " kgCO2eq";
+    return num.toFixed(precision) + " gCO2eq";
   }
-  if (num >= 1e12) return (num / 1e12).toFixed(2) + "T";
-  if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
-  if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
-  if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
-  return num.toFixed(2);
+  if (num >= 1e12) return (num / 1e12).toFixed(precision) + "T";
+  if (num >= 1e9) return (num / 1e9).toFixed(precision) + "B";
+  if (num >= 1e6) return (num / 1e6).toFixed(precision) + "M";
+  if (num >= 1e3) return (num / 1e3).toFixed(precision) + "K";
+  return num.toFixed(precision);
 }
 
 function getTopItems(list, limit = 10) {
@@ -196,7 +197,11 @@ function UsageSection({ title, items, stat, isLoading }) {
                 ))}
               </Pie>
               <ChartTooltip
-                content={<ChartTooltipContent formatter={formatNumber} />}
+                content={
+                  <ChartTooltipContent
+                    formatter={(entry) => formatNumber(entry, stat)}
+                  />
+                }
               ></ChartTooltip>
             </PieChart>
           </ChartContainer>
@@ -257,8 +262,8 @@ export default function Home() {
             tokens: m.total_completion_tokens + m.total_prompt_tokens,
             promptTokens: m.total_prompt_tokens,
             completionTokens: m.total_completion_tokens,
-            energy: Number((impact.energy.min + impact.energy.max) / 2),
-            emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
+            energy: Number((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
+            emissions: Number((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
             url: `https://openrouter.ai/${model.slug}`,
             description: (
               <span>
@@ -280,45 +285,54 @@ export default function Home() {
           return {
             name: a.app?.title,
             tokens: Number(a.total_tokens),
-            energy: Number((impact.energy.min + impact.energy.max) / 2),
-            emissions: Number((impact.gwp.min + impact.gwp.max) / 2),
+            energy: Number((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
+            emissions: Number((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
             url: a.app?.origin_url,
             description: a.app?.description,
           };
         })
       : [];
 
-  const stats = !isLoading
+  const totalPromptTokens = models.reduce((sum, m) => sum + m.promptTokens, 0);
+  const totalCompletionTokens = models.reduce(
+    (sum, m) => sum + m.completionTokens,
+    0
+  );
+  const totalTokens = models.reduce((sum, m) => sum + m.tokens, 0);
+  const totalEnergy = models.reduce((sum, m) => sum + m.energy, 0);
+  const totalEmissions = models.reduce((sum, m) => sum + m.emissions, 0);
+
+  const totals = !isLoading
     ? [
         {
           name: "Prompt tokens",
           stat: "tokens",
           emoji: "📝",
-          value: models.reduce((sum, m) => sum + m.promptTokens, 0),
+          value: totalPromptTokens,
         },
         {
           name: "Completion tokens",
           stat: "tokens",
           emoji: "✅",
-          value: models.reduce((sum, m) => sum + m.completionTokens, 0),
+          value: totalCompletionTokens,
         },
         {
           name: "Total tokens",
           stat: "tokens",
           emoji: "🔤",
-          value: models.reduce((sum, m) => sum + m.tokens, 0),
+          value: totalTokens,
         },
         {
           name: "Projected energy",
           stat: "energy",
           emoji: "⚡",
-          value: models.reduce((sum, m) => sum + m.energy, 0),
+          value: totalEnergy,
         },
         {
           name: "Projected emissions",
           stat: "emissions",
           emoji: "🌱",
-          value: models.reduce((sum, m) => sum + m.emissions, 0),
+          value: totalEmissions,
         },
       ]
     : [];
@@ -359,26 +373,61 @@ export default function Home() {
       <main className="space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Totals for {periodLabel}</CardTitle>
+            <CardTitle className="text-xl">Totals</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-32 w-full" />
             ) : (
               <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-                {stats.map((data) => (
-                  <div key={data.name} className="flex items-center space-x-3">
-                    <div className="text-xl sm:text-2xl">{data.emoji}</div>
+                {totals.map((item) => (
+                  <div key={item.name} className="flex items-center space-x-3">
+                    <div className="text-xl sm:text-2xl">{item.emoji}</div>
                     <div>
                       <p className="text-l sm:text-xl font-bold">
-                        {formatNumber(data.value, data.stat)}
+                        {formatNumber(item.value, item.stat)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {data.name}
+                        {item.name}
                       </p>
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Equivalences</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Skeleton className="h-32 w-full" />
+            ) : (
+              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+                {equivalences
+                  .filter((item) => item.enabled)
+                  .map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center space-x-3"
+                    >
+                      <div className="text-xl sm:text-2xl">{item.emoji}</div>
+                      <div>
+                        <p className="text-l sm:text-xl font-bold">
+                          {formatNumber(
+                            totalEmissions / 1000 / item.kgCO2eq,
+                            null,
+                            0
+                          )}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.label}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
               </div>
             )}
           </CardContent>
