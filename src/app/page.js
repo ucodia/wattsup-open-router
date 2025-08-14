@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell } from "recharts";
 import {
   Table,
   TableHeader,
@@ -19,6 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import llmImpact from "@/lib/llmImpact";
 
 const COLORS = [
@@ -151,6 +156,12 @@ function UsageTable({ data, stat }) {
 function UsageSection({ title, items, stat }) {
   const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
   const topItems = getTopItems(items);
+  const chartConfig = {
+    tokens: {
+      label: "Token usage",
+    },
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -158,7 +169,10 @@ function UsageSection({ title, items, stat }) {
       </CardHeader>
       <CardContent>
         <div className="grid gap-8 md:grid-cols-2">
-          <ResponsiveContainer width="100%" minHeight={300}>
+          <ChartContainer
+            config={chartConfig}
+            className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square min-h-[300px]"
+          >
             <PieChart>
               <Pie
                 data={topItems}
@@ -173,9 +187,11 @@ function UsageSection({ title, items, stat }) {
                   />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => formatNumber(value)} />
+              <ChartTooltip
+                content={<ChartTooltipContent formatter={formatNumber} />}
+              ></ChartTooltip>
             </PieChart>
-          </ResponsiveContainer>
+          </ChartContainer>
           <UsageTable data={sortedItems} stat={stat} />
         </div>
       </CardContent>
@@ -208,7 +224,6 @@ export default function Home() {
     const impact = llmImpact(20, 120, m.total_completion_tokens, 0, "WOR");
 
     return {
-      id: model.permaslug,
       name: model.short_name,
       tokens: m.total_completion_tokens + m.total_prompt_tokens,
       promptTokens: m.total_prompt_tokens,
@@ -275,7 +290,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3">
         <Label htmlFor="period-select" className="text-sm font-medium">
           Period:
         </Label>
