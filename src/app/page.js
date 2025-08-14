@@ -262,6 +262,7 @@ export default function Home() {
             tokens: m.total_completion_tokens + m.total_prompt_tokens,
             promptTokens: m.total_prompt_tokens,
             completionTokens: m.total_completion_tokens,
+            requestCount: m.count,
             energy: Number((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
             emissions: Number((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
             url: `https://openrouter.ai/${model.slug}`,
@@ -299,29 +300,12 @@ export default function Home() {
     0
   );
   const totalTokens = models.reduce((sum, m) => sum + m.tokens, 0);
+  const totalRequests = models.reduce((sum, m) => sum + m.requestCount, 0);
   const totalEnergy = models.reduce((sum, m) => sum + m.energy, 0);
   const totalEmissions = models.reduce((sum, m) => sum + m.emissions, 0);
 
   const totals = !isLoading
     ? [
-        {
-          name: "Prompt tokens",
-          stat: "tokens",
-          emoji: "📝",
-          value: totalPromptTokens,
-        },
-        {
-          name: "Completion tokens",
-          stat: "tokens",
-          emoji: "✅",
-          value: totalCompletionTokens,
-        },
-        {
-          name: "Total tokens",
-          stat: "tokens",
-          emoji: "🔤",
-          value: totalTokens,
-        },
         {
           name: "Projected energy",
           stat: "energy",
@@ -333,6 +317,26 @@ export default function Home() {
           stat: "emissions",
           emoji: "🌱",
           value: totalEmissions,
+        },
+        {
+          name: "Prompt tokens",
+          emoji: "📝",
+          value: totalPromptTokens,
+        },
+        {
+          name: "Completion tokens",
+          emoji: "✅",
+          value: totalCompletionTokens,
+        },
+        {
+          name: "Total tokens",
+          emoji: "🔤",
+          value: totalTokens,
+        },
+        {
+          name: "Requests count",
+          emoji: "📊  ",
+          value: totalRequests,
         },
       ]
     : [];
