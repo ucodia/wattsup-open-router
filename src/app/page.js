@@ -94,7 +94,7 @@ function UsageSection({ title, items }) {
   const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
   const topItems = getTopItems(items);
   return (
-    <Card className="mb-12">
+    <Card>
       <CardHeader>
         <CardTitle className="text-xl">{title}</CardTitle>
       </CardHeader>
@@ -217,19 +217,6 @@ export default function Home() {
         <UsageSection title="Usage by model" items={models} />
         <UsageSection title="Usage by app" items={apps} />
       </main>
-      <footer className="mt-4 py-4 text-center text-muted-foreground">
-        <p>
-          <a
-            href="https://wattsup.tech"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary underline"
-          >
-            Wattsup
-          </a>
-          : shining a light on AI energy usage.
-        </p>
-      </footer>
     </>
   );
 }
