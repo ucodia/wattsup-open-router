@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
               href="https://wattsup.tech"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary underline"
+              className="text-primary font-bold hover:underline"
             >
               Wattsup
             </a>

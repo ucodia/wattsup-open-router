@@ -78,7 +78,41 @@ function UsageTable({ data }) {
           {data.map((item, index) => (
             <TableRow key={`${item.name}-${index}`}>
               <TableCell className="font-medium">{index + 1}</TableCell>
-              <TableCell>{item.name}</TableCell>
+              <TableCell>
+                <div>
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline inline-flex items-center gap-1"
+                    >
+                      {item.name}
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
+                  ) : (
+                    item.name
+                  )}
+                  {item.description && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      {item.description}
+                    </div>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="text-right">
                 {formatNumber(item.tokens)}
               </TableCell>
@@ -157,6 +191,8 @@ export default function Home() {
   const apps = data.appUsage[period].map((a) => ({
     name: a.app?.title || String(a.app_id),
     tokens: Number(a.total_tokens),
+    url: a.app?.origin_url,
+    description: a.app?.description,
   }));
 
   const promptTokens = models.reduce((sum, m) => sum + m.promptTokens, 0);
