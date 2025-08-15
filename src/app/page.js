@@ -324,13 +324,21 @@ export default function Home() {
     ? equivalencesData
         .filter((item) => item.enabled)
         .map((item) => {
+          const div =
+            item?.type === "source"
+              ? period === "day"
+                ? 1
+                : period === "week"
+                ? 7
+                : 30
+              : 1;
           const value = item.gCO2eq
             ? totalEmissions / item.gCO2eq
-            : totalEnergy / item.wh;
+            : totalEnergy / div / item.wh;
           return {
             name: item.label,
             emoji: item.emoji,
-            value: formatNumber(value, null, value < 10 ? 2 : 0),
+            value: formatNumber(value, null, value < 10 ? 2 : 1),
           };
         })
     : [];

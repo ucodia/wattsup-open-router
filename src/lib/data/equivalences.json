@@ -4,6 +4,22 @@
 		"unit": "day",
 		"emoji": "☢️️",
 		"wh": 1000000000,
+		"type": "source",
+		"enabled": true
+	},
+	{
+		"label": "sqft of solar panel",
+		"unit": "sqft",
+		"emoji": "☀️",
+		"wh": 100,
+		"type": "source",
+		"enabled": true
+	},
+	{
+		"label": "EV car charged",
+		"unit": "cycles",
+		"emoji": "🔋",
+		"wh": 80000,
 		"enabled": true
 	},
 	{
@@ -18,27 +34,13 @@
 		"unit": "cycles",
 		"emoji": "📱",
 		"gCO2eq": 12.4,
-		"enabled": true
-	},
-	{
-		"label": "h of YouTube streamed",
-		"unit": "h",
-		"emoji": "📺",
-		"gCO2eq": 0.01,
-		"enabled": true
-	},
-	{
-		"label": "Paris-NYC flights",
-		"unit": "flights",
-		"emoji": "✈️",
-		"gCO2eq": 909600,
 		"enabled": false
 	},
 	{
-		"label": "h of LED bulb",
-		"unit": "h",
-		"emoji": "💡",
-		"gCO2eq": 4.36,
+		"label": "years of YouTube streamed",
+		"unit": "years",
+		"emoji": "📺",
+		"gCO2eq": 8760,
 		"enabled": false
 	},
 	{
