@@ -60,7 +60,10 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent
+        className="w-full sm:max-w-md"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <SheetHeader>
           <SheetTitle>Simulation parameters</SheetTitle>
           <SheetDescription>
