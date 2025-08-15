@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -14,6 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import electricityMixes from "@/lib/data/electricity_mixes.json";
 import { Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -21,6 +29,7 @@ const DEFAULT_CONFIG = {
   totalParameters: 120,
   activeParameters: 20,
   requestLatency: 500,
+  energyMix: "WOR",
 };
 
 const STORAGE_KEY = "simulation-config";
@@ -122,7 +131,44 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
             </p>
           </div>
 
-          <Alert variant="default | destructive">
+          <div className="grid gap-3">
+            <Label htmlFor="energyMix">Energy Mix</Label>
+            <Select
+              value={tempConfig.energyMix}
+              onValueChange={(value) =>
+                setTempConfig({
+                  ...tempConfig,
+                  energyMix: value,
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select energy mix" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(electricityMixes)
+                  .sort((a, b) => {
+                    if (a === "WOR") return -1;
+                    if (b === "WOR") return 1;
+                    if (a === "EEE") return -1;
+                    if (b === "EEE") return 1;
+                    return electricityMixes[a].name.localeCompare(
+                      electricityMixes[b].name
+                    );
+                  })
+                  .map((zoneCode) => (
+                    <SelectItem key={zoneCode} value={zoneCode}>
+                      {electricityMixes[zoneCode]?.name || zoneCode}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Regional electricity mix for emissions calculations
+            </p>
+          </div>
+
+          <Alert>
             <Lightbulb />
             <AlertDescription>
               Learn more about the methodology on{" "}

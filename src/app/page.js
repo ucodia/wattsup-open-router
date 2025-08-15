@@ -253,7 +253,7 @@ export default function Home() {
             simulationConfig.totalParameters,
             m.total_completion_tokens,
             m.count * simulationConfig.requestLatency,
-            "WOR"
+            simulationConfig.energyMix
           );
 
           return {
@@ -285,7 +285,7 @@ export default function Home() {
             simulationConfig.totalParameters,
             Number(a.total_tokens),
             0, // we are missing information to estimate latency
-            "WOR"
+            simulationConfig.energyMix
           );
 
           return {
