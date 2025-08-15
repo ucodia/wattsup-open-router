@@ -47,6 +47,33 @@ function extractData(html) {
   return data;
 }
 
+function processModelUsage(item, models) {
+  const model = models.find(
+    (model) => model.permaslug === item.model_permaslug
+  );
+  return {
+    name: model.short_name,
+    author: model.author,
+    slug: model.slug,
+    usage: item.usage,
+    tokens: item.total_completion_tokens + item.total_prompt_tokens,
+    promptTokens: item.total_prompt_tokens,
+    completionTokens: item.total_completion_tokens,
+    requestCount: item.count,
+    url: `https://openrouter.ai/${model.slug}`,
+    authorUrl: `https://openrouter.ai/${model.author}`,
+  };
+}
+
+function processAppUsage(item) {
+  return {
+    name: item.app.title,
+    tokens: Number(item.total_tokens),
+    description: item.app.description,
+    url: item.app.origin_url,
+  };
+}
+
 async function fetchRankings() {
   const modelUsage = {};
   let appUsage = {};
@@ -68,15 +95,17 @@ async function fetchRankings() {
         );
         const rankingsHtml = await rankingsResponse.text();
         const data = extractData(rankingsHtml);
-        modelUsage[period] = data.modelUsage;
-        appUsage = data.appUsage;
+        modelUsage[period] = data.modelUsage.map((item) =>
+          processModelUsage(item, models)
+        );
+        appUsage[period] = data.appUsage[period].map(processAppUsage);
       })
     );
   } catch (error) {
     throw new Error(`Failed to fetch rankings data: ${error.message}`);
   }
 
-  return { modelUsage, appUsage, models };
+  return { modelUsage, appUsage };
 }
 
 export async function GET() {

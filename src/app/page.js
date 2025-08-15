@@ -89,53 +89,7 @@ function getTopItems(list, limit = 10) {
   return top;
 }
 
-function UsageTable({ data, stat }) {
-  return (
-    <div className="max-h-96 overflow-y-auto">
-      <Table>
-        <TableBody>
-          {data.map((item, index) => (
-            <TableRow key={`${item.name}-${index}`} className="border-0">
-              <TableCell className="font-medium">{index + 1}</TableCell>
-              <TableCell>
-                <div>
-                  {item.url ? (
-                    <ExternalLink href={item.url}>{item.name}</ExternalLink>
-                  ) : (
-                    item.name
-                  )}
-                  {item.description && (
-                    <div className="text-xs text-gray-500">
-                      {item.description}
-                    </div>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell className="text-right">
-                {formatNumber(item.tokens, stat)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
 function UsageSection({ title, items, stat, isLoading }) {
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-64 w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
-
   const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
   const topItems = getTopItems(items);
 
@@ -145,36 +99,72 @@ function UsageSection({ title, items, stat, isLoading }) {
         <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-8 md:grid-cols-2">
-          <ChartContainer
-            config={{}}
-            className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square min-h-[300px]"
-          >
-            <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-              <Pie
-                data={topItems}
-                dataKey={stat}
-                nameKey="name"
-                label={(entry) => formatNumber(entry.value, stat)}
-              >
-                {topItems.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(entry) => formatNumber(entry, stat)}
-                  />
-                }
-              ></ChartTooltip>
-            </PieChart>
-          </ChartContainer>
-          <UsageTable data={sortedItems} stat={stat} />
-        </div>
+        {isLoading ? (
+          <Skeleton className="h-64 w-full" />
+        ) : (
+          <div className="grid gap-8 md:grid-cols-2">
+            <ChartContainer
+              config={{}}
+              className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square min-h-[300px]"
+            >
+              <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <Pie
+                  data={topItems}
+                  dataKey={stat}
+                  nameKey="name"
+                  label={(entry) => formatNumber(entry.value, stat)}
+                >
+                  {topItems.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(entry) => formatNumber(entry, stat)}
+                    />
+                  }
+                ></ChartTooltip>
+              </PieChart>
+            </ChartContainer>
+            <div className="max-h-96 overflow-y-auto">
+              <Table>
+                <TableBody>
+                  {sortedItems.map((item, index) => (
+                    <TableRow
+                      key={`${item.name}-${index}`}
+                      className="border-0"
+                    >
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        <div>
+                          {item.url ? (
+                            <ExternalLink href={item.url}>
+                              {item.name}
+                            </ExternalLink>
+                          ) : (
+                            item.name
+                          )}
+                          {item.description && (
+                            <div className="text-xs text-gray-500">
+                              {item.description}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatNumber(item.tokens, stat)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -245,32 +235,21 @@ export default function Home() {
   const models =
     data && !isLoading
       ? data.modelUsage[period].map((m) => {
-          const model = data.models.find(
-            (model) => model.permaslug === m.model_permaslug
-          );
           const impact = llmImpact(
             simulationConfig.activeParameters,
             simulationConfig.totalParameters,
-            m.total_completion_tokens,
-            m.count * simulationConfig.requestLatency,
+            m.completionTokens,
+            m.requestCount * simulationConfig.requestLatency,
             simulationConfig.energyMix
           );
 
           return {
-            name: model.short_name,
-            tokens: m.total_completion_tokens + m.total_prompt_tokens,
-            promptTokens: m.total_prompt_tokens,
-            completionTokens: m.total_completion_tokens,
-            requestCount: m.count,
-            energy: Number((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
-            emissions: Number((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
-            url: `https://openrouter.ai/${model.slug}`,
+            ...m,
+            energy: ((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
+            emissions: ((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
             description: (
               <span>
-                by{" "}
-                <ExternalLink href={`https://openrouter.ai/${model.author}`}>
-                  {model.author}
-                </ExternalLink>
+                by <ExternalLink href={m.authorUrl}>{m.author}</ExternalLink>
               </span>
             ),
           };
@@ -289,12 +268,9 @@ export default function Home() {
           );
 
           return {
-            name: a.app?.title,
-            tokens: Number(a.total_tokens),
+            ...a,
             energy: Number((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
             emissions: Number((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
-            url: a.app?.origin_url,
-            description: a.app?.description,
           };
         })
       : [];
