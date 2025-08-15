@@ -18,8 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SlidersVertical } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -28,6 +30,11 @@ import {
 import llmImpact from "@/lib/llmImpact";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import equivalencesData from "@/lib/data/equivalences.json";
+import {
+  SimulationConfigEditor,
+  loadSimulationConfig,
+} from "@/components/simulation-config-editor";
+import { ExternalLink } from "@/components/external-link";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -55,8 +62,6 @@ const STAT_LABELS = {
   emissions: "CO2 emissions",
   tokens: "Tokens",
 };
-
-const DEFAULT_LATENCY = 1000;
 
 function formatNumber(num, stat, precision = 2, long = false) {
   if (stat === "energy") {
@@ -89,33 +94,6 @@ function getTopItems(list, limit = 10) {
     top.push({ name: "Other", tokens: other });
   }
   return top;
-}
-
-function ExternalLink({ href, children, className = "" }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`hover:underline inline-flex items-center gap-1 ${className}`}
-    >
-      {children}
-      <svg
-        className="w-3 h-3"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-        />
-      </svg>
-    </a>
-  );
 }
 
 function UsageTable({ data, stat }) {
@@ -244,6 +222,9 @@ export default function Home() {
   const [period, setPeriod] = useState("month");
   const [stat, setStat] = useState("tokens");
   const [error, setError] = useState(null);
+  const [simulationConfig, setSimulationConfig] = useState(() =>
+    loadSimulationConfig()
+  );
   const statLabel = STAT_LABELS[stat];
 
   useEffect(() => {
@@ -275,10 +256,10 @@ export default function Home() {
             (model) => model.permaslug === m.model_permaslug
           );
           const impact = llmImpact(
-            20,
-            120,
+            simulationConfig.activeParameters,
+            simulationConfig.totalParameters,
             m.total_completion_tokens,
-            m.count * DEFAULT_LATENCY,
+            m.count * simulationConfig.requestLatency,
             "WOR"
           );
 
@@ -306,7 +287,13 @@ export default function Home() {
   const apps =
     data && !isLoading
       ? data.appUsage[period].map((a) => {
-          const impact = llmImpact(20, 120, Number(a.total_tokens), 0, "WOR"); // we are missing information to estimate latency
+          const impact = llmImpact(
+            simulationConfig.activeParameters,
+            simulationConfig.totalParameters,
+            Number(a.total_tokens),
+            0, // we are missing information to estimate latency
+            "WOR"
+          );
 
           return {
             name: a.app?.title,
@@ -381,20 +368,30 @@ export default function Home() {
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-3">
-        <Label htmlFor="period-select" className="text-sm font-medium">
-          Period:
-        </Label>
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select period" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="day">Today</SelectItem>
-            <SelectItem value="week">This week</SelectItem>
-            <SelectItem value="month">This month</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="mb-4 flex items-center gap-3 flex-wrap justify-between">
+        <div className="flex items-center gap-3">
+          <Label htmlFor="period-select" className="text-sm font-medium">
+            Period:
+          </Label>
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">Today</SelectItem>
+              <SelectItem value="week">This week</SelectItem>
+              <SelectItem value="month">This month</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <SimulationConfigEditor
+          config={simulationConfig}
+          onConfigChange={setSimulationConfig}
+        >
+          <Button variant="outline" size="icon">
+            <SlidersVertical />
+          </Button>
+        </SimulationConfigEditor>
         {/* <Label htmlFor="stat-select" className="text-sm font-medium">
           Stat:
         </Label>
