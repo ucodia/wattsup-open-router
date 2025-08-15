@@ -338,7 +338,11 @@ export default function Home() {
           return {
             name: item.label,
             emoji: item.emoji,
-            value: formatNumber(value, null, value < 10 ? 2 : 1),
+            value: formatNumber(
+              value,
+              null,
+              value < 1 ? 3 : value < 10 ? 2 : 1
+            ),
           };
         })
     : [];
@@ -360,6 +364,21 @@ export default function Home() {
               <SelectItem value="month">This month</SelectItem>
             </SelectContent>
           </Select>
+          {/* <Label htmlFor="stat-select" className="text-sm font-medium">
+            Stat:
+          </Label>
+          <Select value={stat} onValueChange={setStat}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select stat" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(STAT_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select> */}
         </div>
         <SimulationConfigEditor
           config={simulationConfig}
@@ -369,21 +388,6 @@ export default function Home() {
             <SlidersVertical />
           </Button>
         </SimulationConfigEditor>
-        {/* <Label htmlFor="stat-select" className="text-sm font-medium">
-          Stat:
-        </Label>
-        <Select value={stat} onValueChange={setStat}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select stat" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(STAT_LABELS).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select> */}
       </div>
 
       <main className="space-y-8">

@@ -1,9 +1,9 @@
 [
 	{
-		"label": "number of nuclear plants",
+		"label": "number of nuclear reactors",
 		"unit": "day",
 		"emoji": "☢️️",
-		"wh": 1000000000,
+		"wh": 24000000000,
 		"type": "source",
 		"enabled": true
 	},

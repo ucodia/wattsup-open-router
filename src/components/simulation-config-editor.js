@@ -174,10 +174,11 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
           <Alert>
             <Lightbulb />
             <AlertDescription>
-              Learn more about the methodology on{" "}
+              Learn more about the methodology on the{" "}
               <ExternalLink href="https://ecologits.ai/latest/methodology/llm_inference/">
+                {" "}
                 Ecologits website.
-              </ExternalLink>{" "}
+              </ExternalLink>
             </AlertDescription>
           </Alert>
         </div>
