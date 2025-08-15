@@ -61,7 +61,7 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent
-        className="w-full sm:max-w-md"
+        className="w-full sm:max-w-md flex flex-col"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <SheetHeader>
@@ -71,7 +71,7 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="grid gap-6 p-6">
+        <div className="grid gap-6 p-6 flex-1 overflow-y-auto">
           <div className="grid gap-3">
             <Label htmlFor="totalParameters">Total parameters (billions)</Label>
             <Input
@@ -182,7 +182,7 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
           </Alert>
         </div>
 
-        <SheetFooter className="flex flex-col gap-2 pt-6">
+        <SheetFooter className="flex flex-col gap-2 pt-6 border-t">
           <Button variant="outline" onClick={handleReset}>
             Reset to Defaults
           </Button>
