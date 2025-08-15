@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell } from "recharts";
+import { ExternalLink } from "@/components/external-link";
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+  SimulationConfigEditor,
+  loadSimulationConfig,
+} from "@/components/simulation-config-editor";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,23 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SlidersVertical } from "lucide-react";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import llmImpact from "@/lib/llmImpact";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import equivalencesData from "@/lib/data/equivalences.json";
-import {
-  SimulationConfigEditor,
-  loadSimulationConfig,
-} from "@/components/simulation-config-editor";
-import { ExternalLink } from "@/components/external-link";
+import llmImpact from "@/lib/llmImpact";
+import { SlidersVertical } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Cell, Pie, PieChart } from "recharts";
 
 const COLORS = [
   "#60a5fa", // blue-400

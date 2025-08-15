@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { ExternalLink } from "@/components/external-link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { ExternalLink } from "@/components/external-link";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Lightbulb } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const DEFAULT_CONFIG = {
   totalParameters: 120,

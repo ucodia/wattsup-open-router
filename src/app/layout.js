@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Analytics } from "@vercel/analytics/next";
+import Link from "next/link";
 import "./globals.css";
 
 export default function RootLayout({ children }) {
