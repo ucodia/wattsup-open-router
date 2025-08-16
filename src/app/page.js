@@ -26,8 +26,9 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import equivalencesData from "@/lib/data/equivalences.json";
 import llmImpact from "@/lib/llmImpact";
 import { SlidersVertical } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Cell, Pie, PieChart } from "recharts";
+import useSWR from "swr";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -77,21 +78,18 @@ function formatNumber(num, stat, precision = 2, long = false) {
   return num.toFixed(precision);
 }
 
-function getTopItems(list, limit = 10) {
-  const sorted = [...list].sort((a, b) => b.tokens - a.tokens);
-  const top = sorted.slice(0, limit);
-  if (sorted.length > limit) {
-    const other = sorted
-      .slice(limit)
-      .reduce((sum, item) => sum + item.tokens, 0);
-    top.push({ name: "Other", tokens: other });
+function getTopItems(item, stat, limit = 10) {
+  const top = item.slice(0, limit);
+  if (item.length > limit) {
+    const other = item.slice(limit).reduce((sum, item) => sum + item[stat], 0);
+    top.push({ id: "other", name: "Other", [stat]: other });
   }
   return top;
 }
 
 function UsageSection({ title, items, stat, isLoading }) {
-  const sortedItems = [...items].sort((a, b) => b.tokens - a.tokens);
-  const topItems = getTopItems(items);
+  const sortedItems = [...items].sort((a, b) => b[stat] - a[stat]);
+  const topItems = getTopItems(sortedItems, stat);
 
   return (
     <Card className="pt-0">
@@ -114,11 +112,8 @@ function UsageSection({ title, items, stat, isLoading }) {
                   nameKey="name"
                   label={(entry) => formatNumber(entry.value, stat)}
                 >
-                  {topItems.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
+                  {topItems.map((item, index) => (
+                    <Cell key={item.id} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <ChartTooltip
@@ -134,10 +129,7 @@ function UsageSection({ title, items, stat, isLoading }) {
               <Table>
                 <TableBody>
                   {sortedItems.map((item, index) => (
-                    <TableRow
-                      key={`${item.name}-${index}`}
-                      className="border-0"
-                    >
+                    <TableRow key={item.id} className="border-0">
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell>
                         <div>
@@ -156,7 +148,7 @@ function UsageSection({ title, items, stat, isLoading }) {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatNumber(item.tokens, stat)}
+                        {formatNumber(item[stat], stat)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -200,35 +192,25 @@ function TotalSection({ title, items, isLoading }) {
 }
 
 export default function Home() {
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState("month");
   const [stat, setStat] = useState("tokens");
-  const [error, setError] = useState(null);
   const [simulationConfig, setSimulationConfig] = useState(() =>
     loadSimulationConfig()
   );
-  const statLabel = STAT_LABELS[stat];
 
-  useEffect(() => {
-    setIsLoading(true);
-    fetch("/api/rankings")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setIsLoading(false);
-      });
-  }, []);
+  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const { data, error, isLoading } = useSWR("/api/rankings", fetcher, {
+    refreshInterval: 5 * 60 * 1000,
+    revalidateOnFocus: false,
+  });
+
+  const statLabel = STAT_LABELS[stat];
 
   if (error)
     return (
       <Alert>
         <AlertTitle>Failed to fetch data</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
+        <AlertDescription>{error.message}</AlertDescription>
       </Alert>
     );
 
@@ -256,25 +238,6 @@ export default function Home() {
         })
       : [];
 
-  const apps =
-    data && !isLoading
-      ? data.appUsage[period].map((a) => {
-          const impact = llmImpact(
-            simulationConfig.activeParameters,
-            simulationConfig.totalParameters,
-            Number(a.total_tokens),
-            0, // we are missing information to estimate latency
-            simulationConfig.energyMix
-          );
-
-          return {
-            ...a,
-            energy: Number((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
-            emissions: Number((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
-          };
-        })
-      : [];
-
   const totalPromptTokens = models.reduce((sum, m) => sum + m.promptTokens, 0);
   const totalCompletionTokens = models.reduce(
     (sum, m) => sum + m.completionTokens,
@@ -284,6 +247,27 @@ export default function Home() {
   const totalRequests = models.reduce((sum, m) => sum + m.requestCount, 0);
   const totalEnergy = models.reduce((sum, m) => sum + m.energy, 0);
   const totalEmissions = models.reduce((sum, m) => sum + m.emissions, 0);
+
+  const ioTokenRatio = totalTokens / totalCompletionTokens;
+
+  const apps =
+    data && !isLoading
+      ? data.appUsage[period].map((a) => {
+          const impact = llmImpact(
+            simulationConfig.activeParameters,
+            simulationConfig.totalParameters,
+            a.tokens / ioTokenRatio, // use models IO token ratio to estimate completion
+            0, // we are missing information to estimate latency
+            simulationConfig.energyMix
+          );
+
+          return {
+            ...a,
+            energy: ((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
+            emissions: ((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
+          };
+        })
+      : [];
 
   const totals = !isLoading
     ? [
@@ -334,7 +318,7 @@ export default function Home() {
               : 1;
           const value = item.gCO2eq
             ? totalEmissions / item.gCO2eq
-            : totalEnergy / div / item.wh;
+            : totalEnergy / div / item.w;
           return {
             name: item.label,
             emoji: item.emoji,
@@ -364,7 +348,7 @@ export default function Home() {
               <SelectItem value="month">This month</SelectItem>
             </SelectContent>
           </Select>
-          {/* <Label htmlFor="stat-select" className="text-sm font-medium">
+          <Label htmlFor="stat-select" className="text-sm font-medium">
             Stat:
           </Label>
           <Select value={stat} onValueChange={setStat}>
@@ -378,7 +362,7 @@ export default function Home() {
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select> */}
+          </Select>
         </div>
         <SimulationConfigEditor
           config={simulationConfig}

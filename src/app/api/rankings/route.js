@@ -49,12 +49,16 @@ function extractData(html) {
 
 function processModelUsage(item, models) {
   const model = models.find(
-    (model) => model.permaslug === item.model_permaslug
+    (model) =>
+      model?.endpoint?.model_variant_permaslug === item.variant_permaslug ||
+      model?.permaslug === item.variant_permaslug ||
+      model?.permaslug === item.model_permaslug
   );
+
   return {
+    id: item.variant_permaslug,
     name: model.short_name,
     author: model.author,
-    slug: model.slug,
     usage: item.usage,
     tokens: item.total_completion_tokens + item.total_prompt_tokens,
     promptTokens: item.total_prompt_tokens,
@@ -67,6 +71,7 @@ function processModelUsage(item, models) {
 
 function processAppUsage(item) {
   return {
+    id: item.app.id.toString(),
     name: item.app.title,
     tokens: Number(item.total_tokens),
     description: item.app.description,

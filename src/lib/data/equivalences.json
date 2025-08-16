@@ -1,9 +1,8 @@
 [
 	{
 		"label": "number of nuclear reactors",
-		"unit": "day",
 		"emoji": "☢️️",
-		"wh": 24000000000,
+		"w": 24000000000,
 		"type": "source",
 		"enabled": true
 	},
@@ -11,50 +10,51 @@
 		"label": "sqft of solar panel",
 		"unit": "sqft",
 		"emoji": "☀️",
-		"wh": 100,
+		"w": 100,
 		"type": "source",
 		"enabled": true
 	},
 	{
+		"label": "number of wind turbines",
+		"emoji": "💨",
+		"w": 2000000,
+		"type": "source",
+		"enabled": false
+	},
+	{
 		"label": "EV car charged",
-		"unit": "cycles",
 		"emoji": "🔋",
-		"wh": 80000,
+		"w": 80000,
 		"enabled": true
 	},
 	{
 		"label": "km driven in a car",
-		"unit": "km",
 		"emoji": "🚗",
 		"gCO2eq": 249,
 		"enabled": true
 	},
 	{
 		"label": "smartphones charged",
-		"unit": "cycles",
 		"emoji": "📱",
 		"gCO2eq": 12.4,
 		"enabled": false
 	},
 	{
 		"label": "years of YouTube streamed",
-		"unit": "years",
 		"emoji": "📺",
 		"gCO2eq": 8760,
 		"enabled": false
 	},
 	{
 		"label": "km in a bullet train",
-		"unit": "km",
 		"emoji": "🚄",
 		"gCO2eq": 3.2,
 		"enabled": true
 	},
 	{
 		"label": "days running a microwave",
-		"unit": "day",
 		"emoji": "⏲️️",
-		"wh": 24000,
+		"w": 24000,
 		"enabled": true
 	}
 ]
