@@ -98,14 +98,14 @@
     "enabled": true
   },
   {
-    "label": "Beef (1 kg)",
+    "label": "kg of beef",
     "emoji": "🥩",
     "value": 27000,
     "unit": "gCO2eq",
     "enabled": true
   },
   {
-    "label": "Cheeseburger",
+    "label": "number of cheeseburgers",
     "emoji": "🍔",
     "value": 1900,
     "unit": "gCO2eq",
