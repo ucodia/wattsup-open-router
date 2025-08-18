@@ -32,11 +32,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import equivalencesData from "@/lib/data/equivalences.json";
 import llmImpact from "@/lib/llmImpact";
+import Autoplay from "embla-carousel-autoplay";
 import { SlidersVertical } from "lucide-react";
 import { useState } from "react";
 import { Cell, Pie, PieChart } from "recharts";
 import useSWR from "swr";
-import Autoplay from "embla-carousel-autoplay";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -53,16 +53,12 @@ const COLORS = [
   "#c084fc", // purple-400
 ];
 
-const PERIOD_LABELS = {
-  day: "today",
-  week: "this week",
-  month: "this month",
-};
-
 const STAT_LABELS = {
   energy: "Energy usage",
   emissions: "CO2 emissions",
-  tokens: "Tokens",
+  promptTokens: "Prompt tokens",
+  completionTokens: "Completion tokens",
+  tokens: "Total tokens",
 };
 
 function formatNumber(num, stat, precision = 2, long = false) {
@@ -95,14 +91,43 @@ function getTopItems(item, stat, limit = 10) {
   return top;
 }
 
-function UsageSection({ title, items, stat, isLoading }) {
+function UsageSection({ title, items, isLoading }) {
+  const [stat, setStat] = useState("energy");
   const sortedItems = [...items].sort((a, b) => b[stat] - a[stat]);
   const topItems = getTopItems(sortedItems, stat);
+  // only enable stats defined on the first item
+  const availableStats =
+    items.length > 0
+      ? Object.entries(STAT_LABELS).filter(
+          ([key]) => items[0].hasOwnProperty(key) && items[0][key] !== undefined
+        )
+      : [];
 
   return (
     <Card className="pt-0">
       <CardHeader className="gap-0 border-b [.border-b]:py-4">
-        <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
+          {availableStats.length > 1 && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor="stat-select" className="text-sm font-medium">
+                Stat:
+              </Label>
+              <Select value={stat} onValueChange={setStat}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select stat" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableStats.map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -232,7 +257,6 @@ function TotalSection({ title, items, isLoading }) {
 
 export default function Home() {
   const [period, setPeriod] = useState("month");
-  const [stat, setStat] = useState("energy");
   const [simulationConfig, setSimulationConfig] = useState(() =>
     loadSimulationConfig()
   );
@@ -242,8 +266,6 @@ export default function Home() {
     refreshInterval: 5 * 60 * 1000,
     revalidateOnFocus: false,
   });
-
-  const statLabel = STAT_LABELS[stat];
 
   if (error)
     return (
@@ -388,21 +410,6 @@ export default function Home() {
               <SelectItem value="month">This month</SelectItem>
             </SelectContent>
           </Select>
-          <Label htmlFor="stat-select" className="text-sm font-medium">
-            Stat:
-          </Label>
-          <Select value={stat} onValueChange={setStat}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select stat" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(STAT_LABELS).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
         <SimulationConfigEditor
           config={simulationConfig}
@@ -422,17 +429,11 @@ export default function Home() {
           isLoading={isLoading}
         />
         <UsageSection
-          title={`${statLabel} by model`}
+          title="Stats by model"
           items={models}
-          stat={stat}
           isLoading={isLoading}
         />
-        <UsageSection
-          title={`${statLabel} by app`}
-          items={apps}
-          stat={stat}
-          isLoading={isLoading}
-        />
+        <UsageSection title="Stats by app" items={apps} isLoading={isLoading} />
       </main>
     </>
   );
