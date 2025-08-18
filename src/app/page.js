@@ -9,6 +9,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -29,6 +36,7 @@ import { SlidersVertical } from "lucide-react";
 import { useState } from "react";
 import { Cell, Pie, PieChart } from "recharts";
 import useSWR from "swr";
+import Autoplay from "embla-carousel-autoplay";
 
 const COLORS = [
   "#60a5fa", // blue-400
@@ -163,6 +171,11 @@ function UsageSection({ title, items, stat, isLoading }) {
 }
 
 function TotalSection({ title, items, isLoading }) {
+  const itemChunks = [];
+  for (let i = 0; i < items.length; i += 6) {
+    itemChunks.push(items.slice(i, i + 6));
+  }
+
   return (
     <Card className="pt-0">
       <CardHeader className="gap-0 border-b [.border-b]:py-4">
@@ -172,19 +185,45 @@ function TotalSection({ title, items, isLoading }) {
         {isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : (
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-            {items.map((item) => (
-              <div key={item.name} className="flex items-center space-x-3">
-                <div className="text-xl sm:text-2xl">{item.emoji}</div>
-                <div>
-                  <p className="text-sm sm:text-base font-bold">{item.value}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    {item.name}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <Carousel
+            className="w-full"
+            plugins={[
+              Autoplay({
+                delay: 10000,
+              }),
+            ]}
+          >
+            <CarouselContent>
+              {itemChunks.map((chunk, chunkIndex) => (
+                <CarouselItem key={chunkIndex}>
+                  <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+                    {chunk.map((item) => (
+                      <div
+                        key={item.name}
+                        className="flex items-center space-x-3"
+                      >
+                        <div className="text-xl sm:text-2xl">{item.emoji}</div>
+                        <div>
+                          <p className="text-sm sm:text-base font-bold">
+                            {item.value}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            {item.name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            {itemChunks.length > 1 && (
+              <>
+                <CarouselPrevious />
+                <CarouselNext />
+              </>
+            )}
+          </Carousel>
         )}
       </CardContent>
     </Card>
@@ -193,7 +232,7 @@ function TotalSection({ title, items, isLoading }) {
 
 export default function Home() {
   const [period, setPeriod] = useState("month");
-  const [stat, setStat] = useState("tokens");
+  const [stat, setStat] = useState("energy");
   const [simulationConfig, setSimulationConfig] = useState(() =>
     loadSimulationConfig()
   );
@@ -229,6 +268,7 @@ export default function Home() {
             ...m,
             energy: ((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
             emissions: ((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
+            ioTokenRatio: m.tokens / m.completionTokens,
             description: (
               <span>
                 by <ExternalLink href={m.authorUrl}>{m.author}</ExternalLink>
@@ -308,17 +348,17 @@ export default function Home() {
     ? equivalencesData
         .filter((item) => item.enabled)
         .map((item) => {
-          const div =
-            item?.type === "source"
-              ? period === "day"
-                ? 1
-                : period === "week"
-                ? 7
-                : 30
-              : 1;
-          const value = item.gCO2eq
-            ? totalEmissions / item.gCO2eq
-            : totalEnergy / div / item.w;
+          let value;
+
+          if (item.unit === "gCO2eq") {
+            value = totalEmissions / item.value;
+          } else if (item.unit === "wh") {
+            value = totalEnergy / item.value;
+          } else if (item.unit === "w") {
+            const div = period === "day" ? 1 : period === "week" ? 7 : 30;
+            value = totalEnergy / div / (item.value * 24);
+          }
+
           return {
             name: item.label,
             emoji: item.emoji,

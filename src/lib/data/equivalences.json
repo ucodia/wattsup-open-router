@@ -1,60 +1,114 @@
 [
-	{
-		"label": "number of nuclear reactors",
-		"emoji": "☢️️",
-		"w": 24000000000,
-		"type": "source",
-		"enabled": true
-	},
-	{
-		"label": "sqft of solar panel",
-		"unit": "sqft",
-		"emoji": "☀️",
-		"w": 100,
-		"type": "source",
-		"enabled": true
-	},
-	{
-		"label": "number of wind turbines",
-		"emoji": "💨",
-		"w": 2000000,
-		"type": "source",
-		"enabled": false
-	},
-	{
-		"label": "EV car charged",
-		"emoji": "🔋",
-		"w": 80000,
-		"enabled": true
-	},
-	{
-		"label": "km driven in a car",
-		"emoji": "🚗",
-		"gCO2eq": 249,
-		"enabled": true
-	},
-	{
-		"label": "smartphones charged",
-		"emoji": "📱",
-		"gCO2eq": 12.4,
-		"enabled": false
-	},
-	{
-		"label": "years of YouTube streamed",
-		"emoji": "📺",
-		"gCO2eq": 8760,
-		"enabled": false
-	},
-	{
-		"label": "km in a bullet train",
-		"emoji": "🚄",
-		"gCO2eq": 3.2,
-		"enabled": true
-	},
-	{
-		"label": "days running a microwave",
-		"emoji": "⏲️️",
-		"w": 24000,
-		"enabled": true
-	}
+  {
+    "label": "number of natural gas plants",
+    "emoji": "🔥",
+    "value": 300000000,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "number of coal plants",
+    "emoji": "🪨",
+    "value": 300000000,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "number of nuclear reactors",
+    "emoji": "☢️️",
+    "value": 1000000000,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "acres of solar panel",
+    "emoji": "☀️",
+    "value": 160000,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "number of wind turbines",
+    "emoji": "💨",
+    "value": 1200000,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "number of hydro plants",
+    "emoji": "💧",
+    "value": 12000000,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "US household",
+    "emoji": "🏠",
+    "value": 1390,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "EV car charged",
+    "emoji": "🔋",
+    "value": 80000,
+    "unit": "wh",
+    "enabled": true
+  },
+  {
+    "label": "km driven in a car",
+    "emoji": "🚗",
+    "value": 249,
+    "unit": "gCO2eq",
+    "enabled": true
+  },
+  {
+    "label": "Paris → New York flight",
+    "emoji": "✈️",
+    "value": 1668000,
+    "unit": "gCO2eq",
+    "enabled": true
+  },
+  {
+    "label": "smartphones charged",
+    "emoji": "📱",
+    "value": 12.4,
+    "unit": "gCO2eq",
+    "enabled": true
+  },
+  {
+    "label": "years of YouTube streamed",
+    "emoji": "📺",
+    "value": 8760,
+    "unit": "gCO2eq",
+    "enabled": true
+  },
+  {
+    "label": "km in a bullet train",
+    "emoji": "🚄",
+    "value": 3.2,
+    "unit": "gCO2eq",
+    "enabled": true
+  },
+  {
+    "label": "days running a microwave",
+    "emoji": "⏲️️",
+    "value": 1000,
+    "unit": "w",
+    "enabled": true
+  },
+  {
+    "label": "Beef (1 kg)",
+    "emoji": "🥩",
+    "value": 27000,
+    "unit": "gCO2eq",
+    "enabled": true
+  },
+  {
+    "label": "Cheeseburger",
+    "emoji": "🍔",
+    "value": 1900,
+    "unit": "gCO2eq",
+    "enabled": true
+  }
 ]
