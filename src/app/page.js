@@ -237,8 +237,14 @@ function TotalSection({ title, items, isLoading }) {
             </CarouselContent>
             {itemChunks.length > 1 && (
               <>
-                <CarouselPrevious className="-left-10 disabled:hidden" />
-                <CarouselNext className="-right-10 disabled:hidden" />
+                <CarouselPrevious 
+                  variant="secondary" 
+                  className="-left-10 disabled:hidden" 
+                />
+                <CarouselNext 
+                  variant="secondary" 
+                  className="-right-10 disabled:hidden" 
+                />
               </>
             )}
           </Carousel>
