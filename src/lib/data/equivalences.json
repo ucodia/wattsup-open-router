@@ -8,7 +8,7 @@
   },
   {
     "label": "number of coal plants",
-    "emoji": "🪨",
+    "emoji": "🏭",
     "value": 300000000,
     "unit": "w",
     "enabled": true

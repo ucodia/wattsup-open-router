@@ -110,9 +110,6 @@ function UsageSection({ title, items, isLoading }) {
           <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
           {availableStats.length > 1 && (
             <div className="flex items-center gap-2">
-              <Label htmlFor="stat-select" className="text-sm font-medium">
-                Stat:
-              </Label>
               <Select value={stat} onValueChange={setStat}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select stat" />
