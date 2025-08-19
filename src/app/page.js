@@ -1,12 +1,7 @@
 "use client";
 
 import { ExternalLink } from "@/components/external-link";
-import {
-  SimulationConfigEditor,
-  loadSimulationConfig,
-} from "@/components/simulation-config-editor";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Carousel,
@@ -30,10 +25,10 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { useSimulationConfig } from "@/app/layout";
 import equivalencesData from "@/lib/data/equivalences.json";
 import llmImpact from "@/lib/llmImpact";
 import Autoplay from "embla-carousel-autoplay";
-import { SlidersVertical } from "lucide-react";
 import { useState } from "react";
 import { Cell, Pie, PieChart } from "recharts";
 import useSWR from "swr";
@@ -54,11 +49,12 @@ const COLORS = [
 ];
 
 const STAT_LABELS = {
-  energy: "Energy usage",
-  emissions: "CO2 emissions",
-  promptTokens: "Prompt tokens",
-  completionTokens: "Completion tokens",
-  tokens: "Total tokens",
+  energy: "⚡️ Energy usage",
+  emissions: "🌱 CO2 emissions",
+  promptTokens: "📝 Prompt tokens",
+  completionTokens: "✅ Completion tokens",
+  tokens: "🔢 Total tokens",
+  requestCount: "📊 Request count",
 };
 
 function formatNumber(num, stat, precision = 2, long = false) {
@@ -254,9 +250,7 @@ function TotalSection({ title, items, isLoading }) {
 
 export default function Home() {
   const [period, setPeriod] = useState("month");
-  const [simulationConfig, setSimulationConfig] = useState(() =>
-    loadSimulationConfig()
-  );
+  const simulationConfig = useSimulationConfig();
 
   const fetcher = (url) => fetch(url).then((res) => res.json());
   const { data, error, isLoading } = useSWR("/api/rankings", fetcher, {
@@ -287,7 +281,6 @@ export default function Home() {
             ...m,
             energy: ((impact.energy.min + impact.energy.max) / 2) * 1000, // kWh -> Wh
             emissions: ((impact.gwp.min + impact.gwp.max) / 2) * 1000, // kgCO2eq -> gCO2eq
-            ioTokenRatio: m.tokens / m.completionTokens,
             description: (
               <span>
                 by <ExternalLink href={m.authorUrl}>{m.author}</ExternalLink>
@@ -408,14 +401,6 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
-        <SimulationConfigEditor
-          config={simulationConfig}
-          onConfigChange={setSimulationConfig}
-        >
-          <Button variant="outline" size="icon">
-            <SlidersVertical />
-          </Button>
-        </SimulationConfigEditor>
       </div>
 
       <main className="space-y-8">

@@ -1,12 +1,35 @@
 "use client";
 
+import {
+  SimulationConfigEditor,
+  loadSimulationConfig,
+} from "@/components/simulation-config-editor";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { Analytics } from "@vercel/analytics/next";
+import { SlidersVertical } from "lucide-react";
 import Link from "next/link";
+import { createContext, useContext, useState } from "react";
 import "./globals.css";
 
+const SimulationConfigContext = createContext();
+
+export function useSimulationConfig() {
+  const context = useContext(SimulationConfigContext);
+  if (!context) {
+    throw new Error(
+      "useSimulationConfig must be used within a SimulationConfigProvider"
+    );
+  }
+  return context;
+}
+
 export default function RootLayout({ children }) {
+  const [simulationConfig, setSimulationConfig] = useState(() =>
+    loadSimulationConfig()
+  );
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -34,10 +57,22 @@ export default function RootLayout({ children }) {
                 </span>
                 Wattsup for OpenRouter
               </Link>
-              <ThemeToggle />
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <SimulationConfigEditor
+                  config={simulationConfig}
+                  onConfigChange={setSimulationConfig}
+                >
+                  <Button variant="outline" size="icon">
+                    <SlidersVertical />
+                  </Button>
+                </SimulationConfigEditor>
+              </div>
             </div>
           </nav>
-          <div className="mx-auto max-w-5xl p-4">{children}</div>
+          <SimulationConfigContext.Provider value={simulationConfig}>
+            <div className="mx-auto max-w-5xl p-4">{children}</div>
+          </SimulationConfigContext.Provider>
           <footer className="py-8 text-center text-muted-foreground">
             <p>
               <a
