@@ -37,7 +37,8 @@ function extractData(html) {
       const content = $(el).html().replace(/\\/g, "");
       if (
         content.includes("rankingData") &&
-        content.includes("model_permaslug")
+        content.includes("model_permaslug") &&
+        !content.includes("volume")
       ) {
         data.modelUsage = extractDataKey(content, "rankingData");
       } else if (content.includes("rankMap")) {
@@ -59,7 +60,6 @@ function processModelUsage(item, models) {
     id: item.variant_permaslug,
     name: model.short_name,
     author: model.author,
-    usage: item.usage,
     tokens: item.total_completion_tokens + item.total_prompt_tokens,
     promptTokens: item.total_prompt_tokens,
     completionTokens: item.total_completion_tokens,
