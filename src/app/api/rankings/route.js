@@ -56,16 +56,18 @@ function processModelUsage(item, models) {
       model?.permaslug === item.model_permaslug
   );
 
+  // TODO: investigate rare cases where is not matching model
+
   return {
     id: item.variant_permaslug,
-    name: model.short_name,
-    author: model.author,
+    name: model?.short_name,
+    author: model?.author,
     tokens: item.total_completion_tokens + item.total_prompt_tokens,
     promptTokens: item.total_prompt_tokens,
     completionTokens: item.total_completion_tokens,
     requestCount: item.count,
-    url: `https://openrouter.ai/${model.slug}`,
-    authorUrl: `https://openrouter.ai/${model.author}`,
+    url: `https://openrouter.ai/${model?.slug}`,
+    authorUrl: `https://openrouter.ai/${model?.author}`,
   };
 }
 
