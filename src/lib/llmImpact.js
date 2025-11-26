@@ -4,12 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-// EcoLogits 0.8 JavaScript implementation
+// EcoLogits 0.9 JavaScript implementation
 // Provides the same llmImpact function as the official python library
 // with simplified interface and without DAG
 
 import electricityMixes from "./data/electricity_mixes.json";
-import models from "./data/models.json";
 
 function isRange(v) {
   return typeof v === "object" && v !== null && "min" in v && "max" in v;
@@ -31,80 +30,76 @@ function mulRange(a, scalar) {
   return { min: ra.min * scalar, max: ra.max * scalar };
 }
 
-function ltRange(a, b) {
-  const ra = toRange(a);
-  return ra.max < b;
-}
-
-function findModel(provider, name) {
-  const alias = (models.aliases || []).find(
-    (a) => a.provider === provider && a.name === name
-  );
-  if (alias) name = alias.alias;
-  return (models.models || []).find(
-    (m) => m.provider === provider && m.name === name
-  );
-}
-
-function findMix(zone) {
-  return electricityMixes[zone];
-}
-
-const MODEL_QUANTIZATION_BITS = 4;
-const GPU_ENERGY_ALPHA = 8.91e-8;
-const GPU_ENERGY_BETA = 1.43e-6;
-const GPU_ENERGY_STDEV = 5.19e-7;
-const GPU_LATENCY_ALPHA = 8.02e-4;
-const GPU_LATENCY_BETA = 2.23e-2;
-const GPU_LATENCY_STDEV = 7.0e-6;
+const MODEL_QUANTIZATION_BITS = 16;
+const GPU_ENERGY_ALPHA = 1.1665273170451914e-6;
+const GPU_ENERGY_BETA = -0.011205921025579175;
+const GPU_ENERGY_GAMMA = 4.052928146734005e-5;
+const LATENCY_ALPHA = 0.0006785088094353663;
+const LATENCY_BETA = 0.0003119310311688259;
+const LATENCY_GAMMA = 0.019473717579473387;
 const GPU_MEMORY = 80; // GB
-const GPU_EMBODIED_IMPACT_GWP = 143;
+const GPU_EMBODIED_IMPACT_GWP = 164;
 const GPU_EMBODIED_IMPACT_ADPE = 5.1e-3;
 const GPU_EMBODIED_IMPACT_PE = 1828;
 const SERVER_GPUS = 8;
-const SERVER_POWER = 1; // kW
-const SERVER_EMBODIED_IMPACT_GWP = 3000;
-const SERVER_EMBODIED_IMPACT_ADPE = 0.24;
-const SERVER_EMBODIED_IMPACT_PE = 38000;
-const HARDWARE_LIFESPAN = 5 * 365 * 24 * 60 * 60;
-const DATACENTER_PUE = 1.2;
+const SERVER_POWER = 1.2; // kW
+const SERVER_EMBODIED_IMPACT_GWP = 5700;
+const SERVER_EMBODIED_IMPACT_ADPE = 0.37;
+const SERVER_EMBODIED_IMPACT_PE = 70000;
+const HARDWARE_LIFESPAN = 3 * 365 * 24 * 60 * 60;
+const BATCH_SIZE = 64;
 
 function computeImpactsOnce(opts) {
-  const { activeParams, totalParams, outputTokens, requestLatency, mix } = opts;
-  const energyPerToken = GPU_ENERGY_ALPHA * activeParams + GPU_ENERGY_BETA;
-  const gpuEnergy = {
-    min: Math.max(0, outputTokens * (energyPerToken - 1.96 * GPU_ENERGY_STDEV)),
-    max: outputTokens * (energyPerToken + 1.96 * GPU_ENERGY_STDEV),
-  };
+  const {
+    activeParams,
+    totalParams,
+    outputTokens,
+    requestLatency,
+    mix,
+    datacenterPue,
+    datacenterWue,
+  } = opts;
 
-  const latencyPerToken = GPU_LATENCY_ALPHA * activeParams + GPU_LATENCY_BETA;
-  const latencyInterval = {
-    min: Math.max(
-      0,
-      outputTokens * (latencyPerToken - 1.96 * GPU_LATENCY_STDEV)
-    ),
-    max: outputTokens * (latencyPerToken + 1.96 * GPU_LATENCY_STDEV),
-  };
-  const generationLatency = ltRange(latencyInterval, requestLatency)
-    ? latencyInterval
-    : requestLatency;
-  const genLatRange = toRange(generationLatency);
+  const gpuEnergyPerToken =
+    (GPU_ENERGY_ALPHA * Math.exp(GPU_ENERGY_BETA * BATCH_SIZE) * activeParams +
+      GPU_ENERGY_GAMMA) /
+    1000; // convert to kWh
+  const gpuEnergy = outputTokens * gpuEnergyPerToken;
+
+  const latencyPerToken =
+    LATENCY_ALPHA * activeParams + LATENCY_BETA * BATCH_SIZE + LATENCY_GAMMA;
+  const gpuLatency = outputTokens * latencyPerToken;
+  const generationLatency =
+    requestLatency < gpuLatency ? requestLatency : gpuLatency;
 
   const modelMemory = (1.2 * totalParams * MODEL_QUANTIZATION_BITS) / 8;
-  const gpuCount = Math.ceil(modelMemory / GPU_MEMORY);
+  const gpuCount =
+    2 ** Math.ceil(Math.log2(Math.ceil(modelMemory / GPU_MEMORY)));
 
-  const serverEnergy = mulRange(
-    genLatRange,
-    (SERVER_POWER / 3600) * (gpuCount / SERVER_GPUS)
-  );
+  const serverEnergy =
+    (generationLatency / 3600) *
+    SERVER_POWER *
+    (gpuCount / SERVER_GPUS) *
+    (1 / BATCH_SIZE);
+
   const requestEnergy = mulRange(
-    addRange(serverEnergy, mulRange(gpuEnergy, gpuCount)),
-    DATACENTER_PUE
+    toRange(datacenterPue),
+    serverEnergy + gpuCount * gpuEnergy
   );
 
   const usageGWP = mulRange(requestEnergy, mix.gwp);
   const usageADPe = mulRange(requestEnergy, mix.adpe);
   const usagePE = mulRange(requestEnergy, mix.pe);
+  const pueRange = toRange(datacenterPue);
+  const wueRange = toRange(datacenterWue);
+  const pueTimesElecWue = mulRange(pueRange, mix.wue);
+  const totalWueFactor = addRange(wueRange, pueTimesElecWue);
+  const usageWCF = mulRange(
+    requestEnergy,
+    totalWueFactor.min === totalWueFactor.max
+      ? totalWueFactor.min
+      : totalWueFactor
+  );
 
   const serverGpuEmbodiedGWP =
     (gpuCount / SERVER_GPUS) * SERVER_EMBODIED_IMPACT_GWP +
@@ -116,24 +111,22 @@ function computeImpactsOnce(opts) {
     (gpuCount / SERVER_GPUS) * SERVER_EMBODIED_IMPACT_PE +
     gpuCount * GPU_EMBODIED_IMPACT_PE;
 
-  const embodiedGWP = mulRange(
-    genLatRange,
-    serverGpuEmbodiedGWP / HARDWARE_LIFESPAN
-  );
-  const embodiedADPe = mulRange(
-    genLatRange,
-    serverGpuEmbodiedADPe / HARDWARE_LIFESPAN
-  );
-  const embodiedPE = mulRange(
-    genLatRange,
-    serverGpuEmbodiedPE / HARDWARE_LIFESPAN
-  );
+  const embodiedGWP =
+    (generationLatency * serverGpuEmbodiedGWP) /
+    (HARDWARE_LIFESPAN * BATCH_SIZE);
+  const embodiedADPe =
+    (generationLatency * serverGpuEmbodiedADPe) /
+    (HARDWARE_LIFESPAN * BATCH_SIZE);
+  const embodiedPE =
+    (generationLatency * serverGpuEmbodiedPE) /
+    (HARDWARE_LIFESPAN * BATCH_SIZE);
 
   return {
     request_energy: requestEnergy,
     request_usage_gwp: usageGWP,
     request_usage_adpe: usageADPe,
     request_usage_pe: usagePE,
+    request_usage_wcf: usageWCF,
     request_embodied_gwp: embodiedGWP,
     request_embodied_adpe: embodiedADPe,
     request_embodied_pe: embodiedPE,
@@ -147,7 +140,16 @@ function mergeRanges(a, b) {
 }
 
 function computeLLMImpacts(opts) {
-  const { activeParams, totalParams, outputTokens, requestLatency, mix } = opts;
+  const {
+    activeParams,
+    totalParams,
+    outputTokens,
+    requestLatency,
+    mix,
+    datacenterPue,
+    datacenterWue,
+  } = opts;
+
   const activeVals = isRange(activeParams)
     ? [activeParams.min, activeParams.max]
     : [activeParams, activeParams];
@@ -160,6 +162,7 @@ function computeLLMImpacts(opts) {
     "request_usage_gwp",
     "request_usage_adpe",
     "request_usage_pe",
+    "request_usage_wcf",
     "request_embodied_gwp",
     "request_embodied_adpe",
     "request_embodied_pe",
@@ -172,6 +175,8 @@ function computeLLMImpacts(opts) {
       outputTokens,
       requestLatency,
       mix,
+      datacenterPue,
+      datacenterWue,
     });
     for (const f of fields) {
       if (!results[f]) {
@@ -186,6 +191,7 @@ function computeLLMImpacts(opts) {
   const gwpUsage = results.request_usage_gwp;
   const adpeUsage = results.request_usage_adpe;
   const peUsage = results.request_usage_pe;
+  const wcfUsage = results.request_usage_wcf;
   const gwpEmbodied = results.request_embodied_gwp;
   const adpeEmbodied = results.request_embodied_adpe;
   const peEmbodied = results.request_embodied_pe;
@@ -195,11 +201,13 @@ function computeLLMImpacts(opts) {
     gwp: addRange(gwpUsage, gwpEmbodied),
     adpe: addRange(adpeUsage, adpeEmbodied),
     pe: addRange(peUsage, peEmbodied),
+    wcf: wcfUsage,
     usage: {
       energy,
       gwp: gwpUsage,
       adpe: adpeUsage,
       pe: peUsage,
+      wcf: wcfUsage,
     },
     embodied: {
       gwp: gwpEmbodied,
@@ -213,39 +221,27 @@ function llmImpact(
   activeParams,
   totalParams,
   outputTokenCount,
+  datacenterPue,
+  datacenterWue,
   requestLatency,
   electricityMixZone = "WOR",
   requestCount = 1
 ) {
-  //   const model = findModel(provider, modelName);
-  //   if (!model) {
-  //     throw new Error(
-  //       `Could not find model \`${modelName}\` for ${provider} provider.`
-  //     );
-  //   }
-  const mix = findMix(electricityMixZone);
+  const mix = electricityMixes[electricityMixZone];
   if (!mix) {
     throw new Error(
       `Could not find electricity mix for zone \`${electricityMixZone}\`.`
     );
   }
 
-  //   let totalParams;
-  //   let activeParams;
-  //   if (model.architecture.type === "moe") {
-  //     totalParams = model.architecture.parameters.total;
-  //     activeParams = model.architecture.parameters.active;
-  //   } else {
-  //     totalParams = model.architecture.parameters;
-  //     activeParams = model.architecture.parameters;
-  //   }
-
   const singleImpact = computeLLMImpacts({
     activeParams,
     totalParams,
     outputTokens: outputTokenCount,
-    requestLatency,
+    requestLatency: requestLatency === undefined ? Infinity : requestLatency,
     mix,
+    datacenterPue,
+    datacenterWue,
   });
 
   if (requestCount === 1) {
@@ -257,11 +253,13 @@ function llmImpact(
     gwp: mulRange(singleImpact.gwp, requestCount),
     adpe: mulRange(singleImpact.adpe, requestCount),
     pe: mulRange(singleImpact.pe, requestCount),
+    wcf: mulRange(singleImpact.wcf, requestCount),
     usage: {
       energy: mulRange(singleImpact.usage.energy, requestCount),
       gwp: mulRange(singleImpact.usage.gwp, requestCount),
       adpe: mulRange(singleImpact.usage.adpe, requestCount),
       pe: mulRange(singleImpact.usage.pe, requestCount),
+      wcf: mulRange(singleImpact.usage.wcf, requestCount),
     },
     embodied: {
       gwp: mulRange(singleImpact.embodied.gwp, requestCount),

@@ -29,6 +29,8 @@ const DEFAULT_CONFIG = {
   totalParameters: 120,
   activeParameters: 20,
   requestLatency: 50,
+  datacenterPue: 1.2,
+  datacenterWue: 0.6,
   energyMix: "WOR",
 };
 
@@ -131,6 +133,46 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
             />
             <p className="text-xs text-muted-foreground">
               Average latency per request in milliseconds
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            <Label htmlFor="datacenterPue">Datacenter PUE</Label>
+            <Input
+              id="datacenterPue"
+              type="number"
+              min="1"
+              step="0.1"
+              value={tempConfig.datacenterPue}
+              onChange={(e) =>
+                setTempConfig({
+                  ...tempConfig,
+                  datacenterPue: parseFloat(e.target.value) || 1,
+                })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Datacenter power usage effectiveness
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            <Label htmlFor="datacenterWue">Datacenter WUE (L/kWh)</Label>
+            <Input
+              id="datacenterWue"
+              type="number"
+              min="0"
+              step="0.1"
+              value={tempConfig.datacenterWue}
+              onChange={(e) =>
+                setTempConfig({
+                  ...tempConfig,
+                  datacenterWue: parseFloat(e.target.value) || 0,
+                })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Datacenter water usage effectiveness in liters per kWh
             </p>
           </div>
 

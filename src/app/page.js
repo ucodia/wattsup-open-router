@@ -279,7 +279,9 @@ export default function Home() {
             simulationConfig.activeParameters,
             simulationConfig.totalParameters,
             m.completionTokens / m.requestCount,
-            simulationConfig.requestLatency,
+            simulationConfig.datacenterPue,
+            simulationConfig.datacenterWue,
+            simulationConfig.requestLatency / 1000,
             simulationConfig.energyMix,
             m.requestCount
           );
@@ -316,6 +318,8 @@ export default function Home() {
             simulationConfig.activeParameters,
             simulationConfig.totalParameters,
             a.tokens / ioTokenRatio, // use models IO token ratio to estimate completion
+            simulationConfig.datacenterPue,
+            simulationConfig.datacenterWue,
             0, // we are missing information to estimate latency
             simulationConfig.energyMix
           );
