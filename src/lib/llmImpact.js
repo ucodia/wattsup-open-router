@@ -1,5 +1,12 @@
-// EcoLogits JavaScript implementation
-// Provides the same llmImpact function as ecologits for python
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+// EcoLogits 0.8 JavaScript implementation
+// Provides the same llmImpact function as the official python library
+// with simplified interface and without DAG
 
 import electricityMixes from "./data/electricity_mixes.json";
 import models from "./data/models.json";

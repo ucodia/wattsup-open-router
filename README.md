@@ -23,3 +23,14 @@ It returns model and app usage for day, week and month periods.
   "appUsage": {"day": [...], "week": [...], "month": [...]} 
 }
 ```
+
+## License
+
+This project is released under the **MIT License**.  
+See the `LICENSE` file at the root of the repository for the full text.
+
+### Third-Party Components
+
+This project includes source code originally developed by **Ecologits**, distributed under the **Mozilla Public License 2.0 (MPL-2.0)**.
+
+All MPL-2.0–licensed files include the appropriate license header, and the full text of the MPL-2.0 license is available in `LICENSE-MPL-2.0`.
