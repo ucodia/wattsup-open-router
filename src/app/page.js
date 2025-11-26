@@ -67,7 +67,7 @@ function formatNumber(num, stat, precision = 2, long = false) {
   } else if (stat === "emissions") {
     if (num >= 1e12) return (num / 1e12).toFixed(precision) + " TgCO2eq";
     if (num >= 1e9) return (num / 1e9).toFixed(precision) + " GgCO2eq";
-    if (num >= 1e6) return (num / 1e6).toFixed(precision) + " MgCO2eq";
+    if (num >= 1e6) return (num / 1e6).toFixed(precision) + " tCO2eq";
     if (num >= 1e3) return (num / 1e3).toFixed(precision) + " kgCO2eq";
     return num.toFixed(precision) + " gCO2eq";
   }
@@ -237,13 +237,13 @@ function TotalSection({ title, items, isLoading }) {
             </CarouselContent>
             {itemChunks.length > 1 && (
               <>
-                <CarouselPrevious 
-                  variant="secondary" 
-                  className="-left-10 disabled:hidden" 
+                <CarouselPrevious
+                  variant="secondary"
+                  className="-left-10 disabled:hidden"
                 />
-                <CarouselNext 
-                  variant="secondary" 
-                  className="-right-10 disabled:hidden" 
+                <CarouselNext
+                  variant="secondary"
+                  className="-right-10 disabled:hidden"
                 />
               </>
             )}
