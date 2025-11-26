@@ -28,7 +28,7 @@ import { useEffect, useState } from "react";
 const DEFAULT_CONFIG = {
   totalParameters: 120,
   activeParameters: 20,
-  requestLatency: 500,
+  requestLatency: 50,
   energyMix: "WOR",
 };
 
