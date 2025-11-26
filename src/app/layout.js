@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Analytics } from "@vercel/analytics/next";
-import { SlidersVertical } from "lucide-react";
+import { Github, SlidersVertical } from "lucide-react";
 import Link from "next/link";
 import { createContext, useContext, useState } from "react";
 import "./globals.css";
@@ -58,6 +58,16 @@ export default function RootLayout({ children }) {
                 Wattsup for OpenRouter
               </Link>
               <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" asChild>
+                  <a
+                    href="https://github.com/ucodia/wattsup-open-router"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="View source on GitHub"
+                  >
+                    <Github />
+                  </a>
+                </Button>
                 <ThemeToggle />
                 <SimulationConfigEditor
                   config={simulationConfig}
