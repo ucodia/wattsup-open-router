@@ -214,7 +214,8 @@ function llmImpact(
   totalParams,
   outputTokenCount,
   requestLatency,
-  electricityMixZone = "WOR"
+  electricityMixZone = "WOR",
+  requestCount = 1
 ) {
   //   const model = findModel(provider, modelName);
   //   if (!model) {
@@ -239,13 +240,35 @@ function llmImpact(
   //     activeParams = model.architecture.parameters;
   //   }
 
-  return computeLLMImpacts({
+  const singleImpact = computeLLMImpacts({
     activeParams,
     totalParams,
     outputTokens: outputTokenCount,
     requestLatency,
     mix,
   });
+
+  if (requestCount === 1) {
+    return singleImpact;
+  }
+
+  return {
+    energy: mulRange(singleImpact.energy, requestCount),
+    gwp: mulRange(singleImpact.gwp, requestCount),
+    adpe: mulRange(singleImpact.adpe, requestCount),
+    pe: mulRange(singleImpact.pe, requestCount),
+    usage: {
+      energy: mulRange(singleImpact.usage.energy, requestCount),
+      gwp: mulRange(singleImpact.usage.gwp, requestCount),
+      adpe: mulRange(singleImpact.usage.adpe, requestCount),
+      pe: mulRange(singleImpact.usage.pe, requestCount),
+    },
+    embodied: {
+      gwp: mulRange(singleImpact.embodied.gwp, requestCount),
+      adpe: mulRange(singleImpact.embodied.adpe, requestCount),
+      pe: mulRange(singleImpact.embodied.pe, requestCount),
+    },
+  };
 }
 
 export default llmImpact;

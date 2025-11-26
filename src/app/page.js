@@ -278,9 +278,10 @@ export default function Home() {
           const impact = llmImpact(
             simulationConfig.activeParameters,
             simulationConfig.totalParameters,
-            m.completionTokens,
-            m.requestCount * simulationConfig.requestLatency,
-            simulationConfig.energyMix
+            m.completionTokens / m.requestCount,
+            simulationConfig.requestLatency,
+            simulationConfig.energyMix,
+            m.requestCount
           );
 
           return {
