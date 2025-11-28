@@ -21,7 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import electricityMixes from "@/lib/data/electricity_mixes.json";
+import electricityMixes from "@/lib/data/electricity-mixes.json";
 import { Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -149,19 +149,15 @@ export function SimulationConfigEditor({ config, onConfigChange, children }) {
                 <SelectValue placeholder="Select energy mix" />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(electricityMixes)
+                {electricityMixes
                   .sort((a, b) => {
-                    if (a === "WOR") return -1;
-                    if (b === "WOR") return 1;
-                    if (a === "EEE") return -1;
-                    if (b === "EEE") return 1;
-                    return electricityMixes[a].name.localeCompare(
-                      electricityMixes[b].name
-                    );
+                    if (a.name === "WOR") return -1;
+                    if (b.name === "WOR") return 1;
+                    return a.name.localeCompare(b.name);
                   })
-                  .map((zoneCode) => (
-                    <SelectItem key={zoneCode} value={zoneCode}>
-                      {electricityMixes[zoneCode]?.name || zoneCode}
+                  .map((mix) => (
+                    <SelectItem key={mix.name} value={mix.name}>
+                      {mix.displayName}
                     </SelectItem>
                   ))}
               </SelectContent>

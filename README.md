@@ -14,7 +14,7 @@ Open http://localhost:3000 in your browser.
 
 ## API
 
-The backend API is exposed through a Next.js route at `/api/rankings`.
+The backend API is exposed through a Next.js route at `/api/rankings`.  
 It returns model and app usage for day, week and month periods.
 
 ```
@@ -23,6 +23,11 @@ It returns model and app usage for day, week and month periods.
   "appUsage": {"day": [...], "week": [...], "month": [...]} 
 }
 ```
+
+## EcoLogits data
+
+The LLM impact module depends on EcoLogits data for models and electricity mixes.  
+It can be updated by executing `node bin/update-ecologits-data.js`.
 
 ## License
 

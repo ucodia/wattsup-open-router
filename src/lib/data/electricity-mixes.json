@@ -1,0 +1,402 @@
+[
+  {
+    "name": "ARG",
+    "adpe": "0.00000007686",
+    "pe": "7.8888",
+    "gwp": "0.35895",
+    "wue": "11.4558",
+    "displayName": "Argentina"
+  },
+  {
+    "name": "AUS",
+    "adpe": "0.00000007908",
+    "pe": "12.2247",
+    "gwp": "0.55159",
+    "wue": "4.7293",
+    "displayName": "Australia"
+  },
+  {
+    "name": "AUT",
+    "adpe": "0.00000014112",
+    "pe": "2.8363",
+    "gwp": "0.10262",
+    "wue": "5.7222",
+    "displayName": "Austria"
+  },
+  {
+    "name": "BEL",
+    "adpe": "0.00000003372",
+    "pe": "8.9876",
+    "gwp": "0.11758",
+    "wue": "2.6198",
+    "displayName": "Belgium"
+  },
+  {
+    "name": "BGR",
+    "adpe": "0.00000008236",
+    "pe": "12.118",
+    "gwp": "0.26421",
+    "wue": "4.6228",
+    "displayName": "Bulgaria"
+  },
+  {
+    "name": "BRA",
+    "adpe": "0.00000010962",
+    "pe": "1.7701",
+    "gwp": "0.10321",
+    "wue": "18.6033",
+    "displayName": "Brazil"
+  },
+  {
+    "name": "CAN",
+    "adpe": "0.00000009932",
+    "pe": "4.1955",
+    "gwp": "0.17481",
+    "wue": "8.1662",
+    "displayName": "Canada"
+  },
+  {
+    "name": "CHE",
+    "adpe": "0.00000010047",
+    "pe": "4.7362",
+    "gwp": "0.0366",
+    "wue": "5.6641",
+    "displayName": "Switzerland"
+  },
+  {
+    "name": "CHL",
+    "adpe": "0.00000010585",
+    "pe": "6.434",
+    "gwp": "0.26552",
+    "wue": "10.5226",
+    "displayName": "Chile"
+  },
+  {
+    "name": "CHN",
+    "adpe": "0.00000008516",
+    "pe": "10.6736",
+    "gwp": "0.55955",
+    "wue": "6.0065",
+    "displayName": "China"
+  },
+  {
+    "name": "CYP",
+    "adpe": "0.00000004488",
+    "pe": "11.9763",
+    "gwp": "0.51224",
+    "wue": "1.2947",
+    "displayName": "Cyprus"
+  },
+  {
+    "name": "CZE",
+    "adpe": "0.00000008176",
+    "pe": "11.103",
+    "gwp": "0.41386",
+    "wue": "3.2133",
+    "displayName": "Czechia"
+  },
+  {
+    "name": "DEU",
+    "adpe": "0.00000008787",
+    "pe": "8.7477",
+    "gwp": "0.34414",
+    "wue": "1.947",
+    "displayName": "Germany"
+  },
+  {
+    "name": "DNK",
+    "adpe": "0.00000001574",
+    "pe": "6.6454",
+    "gwp": "0.1433",
+    "wue": "3.1935",
+    "displayName": "Denmark"
+  },
+  {
+    "name": "ESP",
+    "adpe": "0.00000005183",
+    "pe": "7.4839",
+    "gwp": "0.14615",
+    "wue": "6.2088",
+    "displayName": "Spain"
+  },
+  {
+    "name": "EST",
+    "adpe": "0.00000009902",
+    "pe": "14.2926",
+    "gwp": "0.34102",
+    "wue": "2.1986",
+    "displayName": "Estonia"
+  },
+  {
+    "name": "FIN",
+    "adpe": "0.00000008051",
+    "pe": "6.2915",
+    "gwp": "0.07225",
+    "wue": "4.5289",
+    "displayName": "Finland"
+  },
+  {
+    "name": "FRA",
+    "adpe": "0.00000004858",
+    "pe": "9.3135",
+    "gwp": "0.04418",
+    "wue": "3.6737",
+    "displayName": "France"
+  },
+  {
+    "name": "GBR",
+    "adpe": "0.0000000371",
+    "pe": "9.0976",
+    "gwp": "0.21089",
+    "wue": "2.329",
+    "displayName": "United Kingdom"
+  },
+  {
+    "name": "GRC",
+    "adpe": "0.00000006916",
+    "pe": "10.5179",
+    "gwp": "0.31976",
+    "wue": "5.1451",
+    "displayName": "Greece"
+  },
+  {
+    "name": "HUN",
+    "adpe": "0.00000006446",
+    "pe": "10.5942",
+    "gwp": "0.18282",
+    "wue": "3.6874",
+    "displayName": "Hungary"
+  },
+  {
+    "name": "IDN",
+    "adpe": "0.00000006105",
+    "pe": "9.7582",
+    "gwp": "0.68243",
+    "wue": "2.2554",
+    "displayName": "Indonesia"
+  },
+  {
+    "name": "IND",
+    "adpe": "0.0000001001",
+    "pe": "16.6775",
+    "gwp": "0.70832",
+    "wue": "3.4368",
+    "displayName": "India"
+  },
+  {
+    "name": "IRL",
+    "adpe": "0.00000002193",
+    "pe": "8.0614",
+    "gwp": "0.2797",
+    "wue": "1.4769",
+    "displayName": "Ireland"
+  },
+  {
+    "name": "ISL",
+    "adpe": "0.00000007819",
+    "pe": "0.0128",
+    "gwp": "0.02833",
+    "wue": "6.1409",
+    "displayName": "Iceland"
+  },
+  {
+    "name": "ITA",
+    "adpe": "0.00000005439",
+    "pe": "7.9351",
+    "gwp": "0.28753",
+    "wue": "4.8374",
+    "displayName": "Italy"
+  },
+  {
+    "name": "JPN",
+    "adpe": "0.00000005966",
+    "pe": "9.1105",
+    "gwp": "0.48232",
+    "wue": "2.3063",
+    "displayName": "Japan"
+  },
+  {
+    "name": "KOR",
+    "adpe": "0.0000000518",
+    "pe": "9.9136",
+    "gwp": "0.41427",
+    "wue": "1.8877",
+    "displayName": "South Korea"
+  },
+  {
+    "name": "LTU",
+    "adpe": "0.00000002946",
+    "pe": "10.6476",
+    "gwp": "0.13934",
+    "wue": "5.8994",
+    "displayName": "Lithuania"
+  },
+  {
+    "name": "LUX",
+    "adpe": "0.00000010569",
+    "pe": "8.0213",
+    "gwp": "0.13462",
+    "wue": "12.7784",
+    "displayName": "Luxembourg"
+  },
+  {
+    "name": "LVA",
+    "adpe": "0.00000015376",
+    "pe": "3.7781",
+    "gwp": "0.13622",
+    "wue": "2.5526",
+    "displayName": "Latvia"
+  },
+  {
+    "name": "MEX",
+    "adpe": "0.00000005784",
+    "pe": "9.9732",
+    "gwp": "0.48483",
+    "wue": "5.3047",
+    "displayName": "Mexico"
+  },
+  {
+    "name": "MLT",
+    "adpe": "0.00000004948",
+    "pe": "16.3514",
+    "gwp": "0.48416",
+    "wue": "1.1185",
+    "displayName": "Malta"
+  },
+  {
+    "name": "MYS",
+    "adpe": "0.00000004494",
+    "pe": "10.5875",
+    "gwp": "0.60443",
+    "wue": "1.6778",
+    "displayName": "Malaysia"
+  },
+  {
+    "name": "NLD",
+    "adpe": "0.00000003293",
+    "pe": "7.4815",
+    "gwp": "0.25331",
+    "wue": "3.433",
+    "displayName": "Netherlands"
+  },
+  {
+    "name": "NOR",
+    "adpe": "0.00000012749",
+    "pe": "0.1386",
+    "gwp": "0.03075",
+    "wue": "6.6633",
+    "displayName": "Norway"
+  },
+  {
+    "name": "NZL",
+    "adpe": "0.00000007205",
+    "pe": "3.9817",
+    "gwp": "0.12011",
+    "wue": "14.9681",
+    "displayName": "New Zealand"
+  },
+  {
+    "name": "POL",
+    "adpe": "0.00000010195",
+    "pe": "11.1352",
+    "gwp": "0.61498",
+    "wue": "2.5135",
+    "displayName": "Poland"
+  },
+  {
+    "name": "PRT",
+    "adpe": "0.00000003419",
+    "pe": "6.5813",
+    "gwp": "0.11229",
+    "wue": "9.5932",
+    "displayName": "Portugal"
+  },
+  {
+    "name": "ROU",
+    "adpe": "0.00000009818",
+    "pe": "9.1329",
+    "gwp": "0.24555",
+    "wue": "7.3563",
+    "displayName": "Romania"
+  },
+  {
+    "name": "RUS",
+    "adpe": "0.00000009603",
+    "pe": "10.9691",
+    "gwp": "0.4492",
+    "wue": "3.4595",
+    "displayName": "Russia"
+  },
+  {
+    "name": "SVK",
+    "adpe": "0.00000006061",
+    "pe": "8.8184",
+    "gwp": "0.09649",
+    "wue": "5.7952",
+    "displayName": "Slovakia"
+  },
+  {
+    "name": "SVN",
+    "adpe": "0.00000009923",
+    "pe": "8.4293",
+    "gwp": "0.22765",
+    "wue": "2.9769",
+    "displayName": "Slovenia"
+  },
+  {
+    "name": "SWE",
+    "adpe": "0.00000007771",
+    "pe": "4.7301",
+    "gwp": "0.03582",
+    "wue": "6.0315",
+    "displayName": "Sweden"
+  },
+  {
+    "name": "THA",
+    "adpe": "0.00000005696",
+    "pe": "9.0495",
+    "gwp": "0.5545",
+    "wue": "2.8902",
+    "displayName": "Thailand"
+  },
+  {
+    "name": "TUR",
+    "adpe": "0.00000007498",
+    "pe": "8.7855",
+    "gwp": "0.4697",
+    "wue": "4.9197",
+    "displayName": "Turkey"
+  },
+  {
+    "name": "TWN",
+    "adpe": "0.00000005781",
+    "pe": "10.9587",
+    "gwp": "0.63565",
+    "wue": "1.4886",
+    "displayName": "Taiwan"
+  },
+  {
+    "name": "UKR",
+    "adpe": "0.00000006479",
+    "pe": "12.2117",
+    "gwp": "0.25621",
+    "wue": "2.1306",
+    "displayName": "Ukraine"
+  },
+  {
+    "name": "USA",
+    "adpe": "0.00000009855",
+    "pe": "9.6884",
+    "gwp": "0.38355",
+    "wue": "3.1321",
+    "displayName": "United States"
+  },
+  {
+    "name": "WOR",
+    "adpe": "0.00000001349",
+    "pe": "2.5871",
+    "gwp": "0.47301",
+    "wue": "3.908",
+    "displayName": "World"
+  }
+]

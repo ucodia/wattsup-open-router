@@ -2,6 +2,7 @@
   "name": "wattsup-open-router",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "license": "MIT",
   "author": "Lionel Ringenbach <ucodia@live.com>",
   "scripts": {

@@ -8,7 +8,7 @@
 // Provides the same llmImpact function as the official python library
 // with simplified interface and without DAG
 
-import electricityMixes from "./data/electricity_mixes.json";
+import electricityMixes from "./data/electricity-mixes.json";
 import models from "./data/models.json";
 
 function isRange(v) {
@@ -47,7 +47,7 @@ function findModel(provider, name) {
 }
 
 function findMix(zone) {
-  return electricityMixes[zone];
+  return electricityMixes.find((mix) => mix.name === zone);
 }
 
 const MODEL_QUANTIZATION_BITS = 4;
