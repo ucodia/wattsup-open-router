@@ -1,57 +1,18 @@
-import { load } from "cheerio";
 import { NextResponse } from "next/server";
 
 export const revalidate = 300;
 
-function extractDataKey(content, dataKey) {
-  const dataKeyIndex = content.indexOf(dataKey);
-  const isArray =
-    content.indexOf("[", dataKeyIndex) < content.indexOf("{", dataKeyIndex);
-  const openChar = isArray ? "[" : "{";
-  const closeChar = isArray ? "]" : "}";
-  const startIndex = content.indexOf(openChar, dataKeyIndex);
-
-  let endIndex = startIndex;
-  let depth = 0;
-  for (let i = startIndex; i < content.length; i++) {
-    const char = content[i];
-    if (char === openChar) depth++;
-    else if (char === closeChar) {
-      depth--;
-      if (depth === 0) {
-        endIndex = i;
-        break;
-      }
-    }
+async function fetchJson(url, options) {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`${url} responded with status ${response.status}`);
   }
-  const dataString = content.substring(startIndex, endIndex + 1);
-  return JSON.parse(dataString);
-}
-
-function extractData(html) {
-  const data = {};
-  const $ = load(html);
-  $("script")
-    .toArray()
-    .forEach((el) => {
-      const content = $(el).html().replace(/\\/g, "");
-      if (
-        content.includes("rankingData") &&
-        content.includes("model_permaslug") &&
-        !content.includes("volume")
-      ) {
-        data.modelUsage = extractDataKey(content, "rankingData");
-      } else if (content.includes("rankMap")) {
-        data.appUsage = extractDataKey(content, "rankMap");
-      }
-    });
-  return data;
+  return response.json();
 }
 
 function processModelUsage(item, models) {
   const model = models.find(
     (model) =>
-      model?.endpoint?.model_variant_permaslug === item.variant_permaslug ||
       model?.permaslug === item.variant_permaslug ||
       model?.permaslug === item.model_permaslug
   );
@@ -83,29 +44,29 @@ function processAppUsage(item) {
 
 async function fetchRankings() {
   const modelUsage = {};
-  let appUsage = {};
-  let models = {};
+  const appUsage = {};
 
   try {
-    const modelsResponse = await fetch(
-      "https://openrouter.ai/api/frontend/models",
+    const models = await fetchJson(
+      "https://openrouter.ai/api/frontend/v1/models",
       { cache: "no-store" } // avoid 2MB cache limit error
     );
-    const modelsData = await modelsResponse.json();
-    models = modelsData.data;
+
+    const appRankings = await fetchJson(
+      "https://openrouter.ai/api/frontend/v1/rankings/apps",
+      { next: { revalidate: 300 } }
+    );
 
     await Promise.all(
       ["day", "week", "month"].map(async (period) => {
-        const rankingsResponse = await fetch(
-          `https://openrouter.ai/rankings?view=${period}`,
+        const modelRankings = await fetchJson(
+          `https://openrouter.ai/api/frontend/v1/rankings/models?view=${period}`,
           { next: { revalidate: 300 } }
         );
-        const rankingsHtml = await rankingsResponse.text();
-        const data = extractData(rankingsHtml);
-        modelUsage[period] = data.modelUsage.map((item) =>
+        modelUsage[period] = modelRankings.data.map((item) =>
           processModelUsage(item, models)
         );
-        appUsage[period] = data.appUsage[period].map(processAppUsage);
+        appUsage[period] = appRankings.data[period].map(processAppUsage);
       })
     );
   } catch (error) {
