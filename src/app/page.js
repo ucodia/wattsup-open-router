@@ -87,7 +87,18 @@ function getTopItems(item, stat, limit = 10) {
   return top;
 }
 
-function UsageSection({ title, items, isLoading }) {
+function SectionError() {
+  return (
+    <Alert variant="destructive">
+      <AlertTitle>OpenRouter rankings are unavailable</AlertTitle>
+      <AlertDescription>
+        We couldn&apos;t retrieve usage data from OpenRouter at the moment.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function UsageSection({ title, items, isLoading, error }) {
   const [stat, setStat] = useState("energy");
   const sortedItems = [...items].sort((a, b) => b[stat] - a[stat]);
   const topItems = getTopItems(sortedItems, stat);
@@ -95,7 +106,8 @@ function UsageSection({ title, items, isLoading }) {
   const availableStats =
     items.length > 0
       ? Object.entries(STAT_LABELS).filter(
-          ([key]) => items[0].hasOwnProperty(key) && items[0][key] !== undefined
+          ([key]) =>
+            items[0].hasOwnProperty(key) && items[0][key] !== undefined,
         )
       : [];
 
@@ -123,7 +135,9 @@ function UsageSection({ title, items, isLoading }) {
         </div>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {error ? (
+          <SectionError />
+        ) : isLoading ? (
           <Skeleton className="h-64 w-full" />
         ) : (
           <div className="grid gap-8 md:grid-cols-2">
@@ -188,7 +202,7 @@ function UsageSection({ title, items, isLoading }) {
   );
 }
 
-function TotalSection({ title, items, isLoading }) {
+function TotalSection({ title, items, isLoading, error }) {
   const itemChunks = [];
   for (let i = 0; i < items.length; i += 6) {
     itemChunks.push(items.slice(i, i + 6));
@@ -200,7 +214,9 @@ function TotalSection({ title, items, isLoading }) {
         <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {error ? (
+          <SectionError />
+        ) : isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : (
           <Carousel
@@ -258,30 +274,31 @@ export default function Home() {
   const [period, setPeriod] = useState("month");
   const simulationConfig = useSimulationConfig();
 
-  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const fetcher = async (url) => {
+    const res = await fetch(url);
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(
+        body?.message || `Request failed with status ${res.status}`,
+      );
+    }
+    return body;
+  };
   const { data, error, isLoading } = useSWR("/api/rankings", fetcher, {
     refreshInterval: 5 * 60 * 1000,
     revalidateOnFocus: false,
   });
 
-  if (error)
-    return (
-      <Alert>
-        <AlertTitle>Failed to fetch data</AlertTitle>
-        <AlertDescription>{error.message}</AlertDescription>
-      </Alert>
-    );
-
   const models =
     data && !isLoading
-      ? data.modelUsage[period].map((m) => {
+      ? (data.modelUsage?.[period] ?? []).map((m) => {
           const impact = llmImpact(
             simulationConfig.activeParameters,
             simulationConfig.totalParameters,
             m.completionTokens / m.requestCount,
             simulationConfig.requestLatency,
             simulationConfig.energyMix,
-            m.requestCount
+            m.requestCount,
           );
 
           return {
@@ -300,7 +317,7 @@ export default function Home() {
   const totalPromptTokens = models.reduce((sum, m) => sum + m.promptTokens, 0);
   const totalCompletionTokens = models.reduce(
     (sum, m) => sum + m.completionTokens,
-    0
+    0,
   );
   const totalTokens = models.reduce((sum, m) => sum + m.tokens, 0);
   const totalRequests = models.reduce((sum, m) => sum + m.requestCount, 0);
@@ -311,13 +328,13 @@ export default function Home() {
 
   const apps =
     data && !isLoading
-      ? data.appUsage[period].map((a) => {
+      ? (data.appUsage?.[period] ?? []).map((a) => {
           const impact = llmImpact(
             simulationConfig.activeParameters,
             simulationConfig.totalParameters,
             a.tokens / ioTokenRatio, // use models IO token ratio to estimate completion
             0, // we are missing information to estimate latency
-            simulationConfig.energyMix
+            simulationConfig.energyMix,
           );
 
           return {
@@ -384,7 +401,7 @@ export default function Home() {
             value: formatNumber(
               value,
               null,
-              value < 1 ? 3 : value < 10 ? 2 : 1
+              value < 1 ? 3 : value < 10 ? 2 : 1,
             ),
           };
         })
@@ -411,18 +428,30 @@ export default function Home() {
       </div>
 
       <main className="space-y-8">
-        <TotalSection title="Totals" items={totals} isLoading={isLoading} />
+        <TotalSection
+          title="Totals"
+          items={totals}
+          isLoading={isLoading}
+          error={error}
+        />
         <TotalSection
           title="Equivalences"
           items={equivalences}
           isLoading={isLoading}
+          error={error}
         />
         <UsageSection
           title="Stats by model"
           items={models}
           isLoading={isLoading}
+          error={error}
         />
-        <UsageSection title="Stats by app" items={apps} isLoading={isLoading} />
+        <UsageSection
+          title="Stats by app"
+          items={apps}
+          isLoading={isLoading}
+          error={error}
+        />
       </main>
     </>
   );
