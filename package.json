@@ -49,6 +49,9 @@
     "wrangler": "^4.111.0"
   },
   "overrides": {
-    "es-toolkit": "^1.49.0"
+    "es-toolkit": "^1.49.0",
+    "@vinext/cloudflare": {
+      "vinext": "$vinext"
+    }
   }
 }
