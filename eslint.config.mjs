@@ -1,14 +1,31 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import js from "@eslint/js";
+import reactHooks from "eslint-plugin-react-hooks";
+import globals from "globals";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
+const eslintConfig = [
+  {
+    ignores: [".next/", ".vinext/", ".wrangler/", "dist/", "node_modules/"],
+  },
+  js.configs.recommended,
+  reactHooks.configs.flat.recommended,
+  {
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-unused-vars": ["warn", { varsIgnorePattern: "^[A-Z_]" }],
+      "no-prototype-builtins": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+    },
+  },
+];
 
 export default eslintConfig;

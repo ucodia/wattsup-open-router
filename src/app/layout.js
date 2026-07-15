@@ -7,7 +7,6 @@ import {
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Analytics } from "@vercel/analytics/next";
 import { Github, SlidersVertical } from "lucide-react";
 import Link from "next/link";
 import { createContext, useContext, useState } from "react";
@@ -38,6 +37,15 @@ export default function RootLayout({ children }) {
           rel="icon"
           href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%EF%B8%8F%3C/text%3E%3C/svg%3E"
         />
+        {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
+          <script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({
+              token: process.env.NEXT_PUBLIC_CF_BEACON_TOKEN,
+            })}
+          />
+        )}
       </head>
       <body className="min-h-screen font-sans">
         <ThemeProvider
@@ -97,7 +105,6 @@ export default function RootLayout({ children }) {
             </p>
           </footer>
         </ThemeProvider>
-        <Analytics />
       </body>
     </html>
   );
