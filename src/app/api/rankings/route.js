@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 
-export const revalidate = 300;
+// Cached for 1h per Cloudflare colo via the CDN cache adapter, which turns
+// this into CDN-Cache-Control headers. There is no origin or data cache:
+// upstream fetches only happen when an edge cache entry expires.
+export const revalidate = 3600;
 
-async function fetchJson(url, options) {
-  const response = await fetch(url, options);
+async function fetchJson(url) {
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`${url} responded with status ${response.status}`);
   }
@@ -48,20 +51,17 @@ async function fetchRankings() {
 
   try {
     const models = await fetchJson(
-      "https://openrouter.ai/api/frontend/v1/models",
-      { cache: "no-store" } // avoid 2MB cache limit error
+      "https://openrouter.ai/api/frontend/v1/models"
     );
 
     const appRankings = await fetchJson(
-      "https://openrouter.ai/api/frontend/v1/rankings/apps",
-      { next: { revalidate: 300 } }
+      "https://openrouter.ai/api/frontend/v1/rankings/apps"
     );
 
     await Promise.all(
       ["day", "week", "month"].map(async (period) => {
         const modelRankings = await fetchJson(
-          `https://openrouter.ai/api/frontend/v1/rankings/models?view=${period}`,
-          { next: { revalidate: 300 } }
+          `https://openrouter.ai/api/frontend/v1/rankings/models?view=${period}`
         );
         modelUsage[period] = modelRankings.data.map((item) =>
           processModelUsage(item, models)
@@ -84,7 +84,13 @@ export async function GET() {
     console.error("Error fetching live rankings:", err);
     return NextResponse.json(
       { error: "Failed to fetch rankings data", message: err.message },
-      { status: 500 }
+      {
+        status: 500,
+        // vinext stamps the revalidate cache policy on any response without
+        // an explicit Cache-Control, regardless of status; opt errors out so
+        // the edge never caches a failure for the full hour
+        headers: { "Cache-Control": "no-store" },
+      }
     );
   }
 }

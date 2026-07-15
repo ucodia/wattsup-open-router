@@ -285,7 +285,7 @@ export default function Home() {
     return body;
   };
   const { data, error, isLoading } = useSWR("/api/rankings", fetcher, {
-    refreshInterval: 5 * 60 * 1000,
+    refreshInterval: 30 * 60 * 1000,
     revalidateOnFocus: false,
   });
 
