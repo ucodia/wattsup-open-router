@@ -29,7 +29,7 @@ import { useSimulationConfig } from "@/app/layout";
 import equivalencesData from "@/lib/data/equivalences.json";
 import llmImpact from "@/lib/llmImpact";
 import Autoplay from "embla-carousel-autoplay";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Cell, Pie, PieChart } from "recharts";
 import useSWR from "swr";
 
@@ -78,6 +78,18 @@ function formatNumber(num, stat, precision = 2, long = false) {
   return num.toFixed(precision);
 }
 
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const onChange = () => setIsMobile(mql.matches);
+    onChange();
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 function getTopItems(item, stat, limit = 10) {
   const top = item.slice(0, limit);
   if (item.length > limit) {
@@ -100,6 +112,7 @@ function SectionError() {
 
 function UsageSection({ title, items, isLoading, error }) {
   const [stat, setStat] = useState("energy");
+  const isMobile = useIsMobile();
   const sortedItems = [...items].sort((a, b) => b[stat] - a[stat]);
   const topItems = getTopItems(sortedItems, stat);
   // only enable stats defined on the first item
@@ -143,13 +156,14 @@ function UsageSection({ title, items, isLoading, error }) {
           <div className="grid gap-8 md:grid-cols-2">
             <ChartContainer
               config={{}}
-              className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square min-h-[300px]"
+              className="[&_.recharts-pie-label-text]:fill-foreground [&_.recharts-pie-label-text]:text-[9px] sm:[&_.recharts-pie-label-text]:text-xs mx-auto aspect-square w-full min-w-0 min-h-[300px]"
             >
-              <PieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <PieChart margin={{ top: 16, right: 16, bottom: 16, left: 16 }}>
                 <Pie
                   data={topItems}
                   dataKey={stat}
                   nameKey="name"
+                  outerRadius={isMobile ? "60%" : "80%"}
                   label={(entry) => formatNumber(entry.value, stat)}
                 >
                   {topItems.map((item, index) => (
@@ -165,14 +179,14 @@ function UsageSection({ title, items, isLoading, error }) {
                 ></ChartTooltip>
               </PieChart>
             </ChartContainer>
-            <div className="max-h-96 overflow-y-auto">
+            <div className="max-h-96 min-w-0 overflow-y-auto">
               <Table>
                 <TableBody>
                   {sortedItems.map((item, index) => (
                     <TableRow key={item.id} className="border-0">
                       <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>
-                        <div>
+                      <TableCell className="w-full max-w-0">
+                        <div className="truncate">
                           {item.url ? (
                             <ExternalLink href={item.url}>
                               {item.name}
@@ -180,12 +194,19 @@ function UsageSection({ title, items, isLoading, error }) {
                           ) : (
                             item.name
                           )}
-                          {item.description && (
-                            <div className="text-xs text-gray-500">
-                              {item.description}
-                            </div>
-                          )}
                         </div>
+                        {item.description && (
+                          <div
+                            className="truncate text-xs text-gray-500"
+                            title={
+                              typeof item.description === "string"
+                                ? item.description
+                                : undefined
+                            }
+                          >
+                            {item.description}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatNumber(item[stat], stat)}
