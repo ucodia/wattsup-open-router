@@ -50,9 +50,9 @@ async function fetchRankings() {
   const appUsage = {};
 
   try {
-    const models = await fetchJson(
-      "https://openrouter.ai/api/frontend/v1/models"
-    );
+    const {
+      data: { models },
+    } = await fetchJson("https://openrouter.ai/api/frontend/v1/models/find");
 
     const appRankings = await fetchJson(
       "https://openrouter.ai/api/frontend/v1/rankings/apps"
