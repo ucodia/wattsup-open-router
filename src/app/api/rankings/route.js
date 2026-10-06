@@ -63,9 +63,9 @@ async function fetchRankings() {
         const modelRankings = await fetchJson(
           `https://openrouter.ai/api/frontend/v1/rankings/models?view=${period}`
         );
-        modelUsage[period] = modelRankings.data.map((item) =>
-          processModelUsage(item, models)
-        );
+        modelUsage[period] = modelRankings.data
+          .filter((item) => item.count > 0)
+          .map((item) => processModelUsage(item, models));
         appUsage[period] = appRankings.data[period].map(processAppUsage);
       })
     );
